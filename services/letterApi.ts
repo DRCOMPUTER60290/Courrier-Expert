@@ -1,7 +1,7 @@
 // services/letterApi.ts
 import { generateContentByType } from '@/utils/letterPdf';
 
-export async function generateLetterOnline(
+export async function generateLetter(
   type: string,
   recipient: any,
   data: Record<string, any>
@@ -9,7 +9,7 @@ export async function generateLetterOnline(
   // 1. Génère le prompt à partir du type, des données et du destinataire
   const prompt = generateContentByType(type, data, recipient);
 
-  // 2. Envoie ce prompt à l’API distante pour génération
+  // 2. Envoie ce prompt à l'API distante pour génération
   const response = await fetch(
     'https://assistant-backend-yrbx.onrender.com/api/generate-letter',
     {
@@ -20,29 +20,15 @@ export async function generateLetterOnline(
   );
 
   if (!response.ok) {
-    throw new Error('Failed to generate letter');
+    const errorText = await response.text();
+    throw new Error(`Erreur du serveur: ${response.status} - ${errorText}`);
   }
+
   const result = await response.json();
-  return result.content as string;
-}
-
-export function generateLetterOffline(
-  type: string,
-  recipient: any,
-  data: Record<string, any>
-): string {
-  return generateContentByType(type, data, recipient);
-}
-
-export async function generateLetter(
-  type: string,
-  recipient: any,
-  data: Record<string, any>
-): Promise<string> {
-  try {
-    return await generateLetterOnline(type, recipient, data);
-  } catch (error) {
-    console.warn('Online generation failed, using offline fallback', error);
-    return generateLetterOffline(type, recipient, data);
+  
+  if (!result.content) {
+    throw new Error('Réponse invalide du serveur: contenu manquant');
   }
+
+  return result.content as string;
 }

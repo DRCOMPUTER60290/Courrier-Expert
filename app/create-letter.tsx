@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert 
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLetters } from '@/contexts/LetterContext';
-import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, FileText, Send, Loader } from 'lucide-react-native';
+import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, FileText, Send, Loader, Wifi, WifiOff } from 'lucide-react-native';
 import DatePicker from '@/components/DatePicker';
 import CitySelector from '@/components/CitySelector';
 import { generateLetter } from '@/services/letterApi';
@@ -84,6 +84,7 @@ export default function CreateLetterScreen() {
     phone: '',
   });
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
 
   const fields = letterTypeFields[type || 'motivation'] || [];
   const typeLabels: Record<string, string> = {
@@ -99,10 +100,18 @@ export default function CreateLetterScreen() {
 
   const handleInputChange = (key: string, value: string) => {
     setFormData(prev => ({ ...prev, [key]: value }));
+    // Clear error when user starts typing
+    if (generationError) {
+      setGenerationError(null);
+    }
   };
 
   const handleRecipientChange = (key: string, value: string) => {
     setRecipient(prev => ({ ...prev, [key]: value }));
+    // Clear error when user starts typing
+    if (generationError) {
+      setGenerationError(null);
+    }
   };
 
   const validateForm = () => {
@@ -127,6 +136,7 @@ export default function CreateLetterScreen() {
     if (!validateForm()) return;
 
     setIsGenerating(true);
+    setGenerationError(null);
 
     try {
       const generatedContent = await generateLetter(type || 'motivation', recipient, formData);
@@ -159,8 +169,18 @@ export default function CreateLetterScreen() {
         ]
       );
     } catch (error) {
-      console.error(error);
-      Alert.alert('Erreur', 'Une erreur est survenue lors de la génération du courrier');
+      console.error('Erreur de génération:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Une erreur inconnue est survenue';
+      setGenerationError(errorMessage);
+      
+      // Afficher une alerte avec plus de détails
+      Alert.alert(
+        'Erreur de génération', 
+        'Impossible de générer le courrier. Vérifiez votre connexion internet et réessayez.',
+        [
+          { text: 'OK', style: 'default' }
+        ]
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -241,6 +261,16 @@ export default function CreateLetterScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Affichage de l'erreur de génération */}
+        {generationError && (
+          <View style={[styles.errorContainer, { backgroundColor: colors.error + '15', borderColor: colors.error }]}>
+            <WifiOff size={20} color={colors.error} />
+            <Text style={[styles.errorText, { color: colors.error }]}>
+              {generationError}
+            </Text>
+          </View>
+        )}
+
         <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Informations du courrier</Text>
           {fields.map(renderField)}
@@ -262,6 +292,14 @@ export default function CreateLetterScreen() {
           
           {renderRecipientField('email', 'Email', 'email@exemple.com', Mail)}
           {renderRecipientField('phone', 'Téléphone', '01 23 45 67 89', Phone)}
+        </View>
+
+        {/* Avertissement de connexion requise */}
+        <View style={[styles.warningContainer, { backgroundColor: colors.warning + '15', borderColor: colors.warning }]}>
+          <Wifi size={20} color={colors.warning} />
+          <Text style={[styles.warningText, { color: colors.warning }]}>
+            Une connexion internet est requise pour générer votre courrier
+          </Text>
         </View>
 
         <TouchableOpacity
@@ -354,6 +392,34 @@ const styles = StyleSheet.create({
   multilineInput: {
     height: 100,
     textAlignVertical: 'top',
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 16,
+    gap: 8,
+  },
+  errorText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    flex: 1,
+  },
+  warningContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 16,
+    gap: 8,
+  },
+  warningText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    flex: 1,
   },
   generateButton: {
     flexDirection: 'row',

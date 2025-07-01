@@ -1,6 +1,6 @@
 # Courrier-Expert
 
-Courrier-Expert is a React Native application built with **Expo Router** for generating and managing professional letters. It includes a set of screens to create letters from templates, preview them and manage user information.
+Courrier-Expert is a React Native application built with **Expo Router** for generating and managing professional letters. It uses AI-powered letter generation through a remote server to create personalized, professional correspondence.
 
 ## Running locally
 
@@ -46,4 +46,31 @@ After rebuilding the native project (`npx expo prebuild && npx expo run:ios` or 
 
 ## Letter generation API
 
-Letters are generated using a remote service hosted at `https://assistant-backend-yrbx.onrender.com`. The app sends a single **prompt** string (constructed via `generateContentByType(type, data, recipient)`) to the endpoint `/api/generate-letter`. This prompt includes the letter type, recipient information and form data. The server returns the letter content in a formal style with a header and signature. If the request fails, the app falls back to the offline generator (`generateLetterOffline`) or displays an error to the user.
+Letters are generated using a remote AI service hosted at `https://assistant-backend-yrbx.onrender.com`. The app sends a **prompt** string (constructed via `generateContentByType(type, data, recipient)`) to the endpoint `/api/generate-letter`. This prompt includes the letter type, recipient information and form data. The server uses AI to generate professional, personalized letter content.
+
+### API Requirements
+
+- **Internet connection required**: The app requires an active internet connection to generate letters
+- **No offline mode**: All letter generation is handled by the remote server
+- **Error handling**: The app provides clear feedback when generation fails due to network issues or server errors
+
+### API Request Format
+
+```typescript
+POST https://assistant-backend-yrbx.onrender.com/api/generate-letter
+Content-Type: application/json
+
+{
+  "prompt": "Generated prompt string with letter type, recipient info, and form data"
+}
+```
+
+### API Response Format
+
+```typescript
+{
+  "content": "Generated letter content as a string"
+}
+```
+
+The generated content is then formatted and displayed in the letter preview with proper sender/recipient information, date, and signature.
