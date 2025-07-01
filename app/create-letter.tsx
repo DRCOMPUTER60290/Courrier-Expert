@@ -6,6 +6,7 @@ import { useLetters } from '@/contexts/LetterContext';
 import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, FileText, Send, Loader } from 'lucide-react-native';
 import DatePicker from '@/components/DatePicker';
 import CitySelector from '@/components/CitySelector';
+import { generateLetterOnline } from '@/services/letterApi';
 
 interface FormField {
   key: string;
@@ -128,14 +129,13 @@ export default function CreateLetterScreen() {
     setIsGenerating(true);
 
     try {
-      // Simulation d'appel API
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const generatedContent = await generateLetterOnline(type || 'motivation', recipient, formData);
 
       const newLetter = {
         id: Date.now().toString(),
         type: type || 'motivation',
         title: `${typeLabels[type || 'motivation']} - ${recipient.firstName} ${recipient.lastName}`,
-        content: `Lettre générée pour ${recipient.firstName} ${recipient.lastName} concernant ${typeLabels[type || 'motivation']}.`,
+        content: generatedContent,
         recipient,
         data: formData,
         createdAt: new Date(),
@@ -159,6 +159,7 @@ export default function CreateLetterScreen() {
         ]
       );
     } catch (error) {
+      console.error(error);
       Alert.alert('Erreur', 'Une erreur est survenue lors de la génération du courrier');
     } finally {
       setIsGenerating(false);

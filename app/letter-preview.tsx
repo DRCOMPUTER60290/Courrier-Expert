@@ -139,7 +139,149 @@ export default function LetterPreviewScreen() {
     }
   };
 
+
   const letterContent = generateLetterContent(letter, profile);
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(new Date(date));
+  };
+
+  const generateLetterContent = () => {
+    const senderInfo = `${profile.firstName} ${profile.lastName}${profile.company ? `\n${profile.company}` : ''}${profile.address ? `\n${profile.address}` : ''}${profile.postalCode && profile.city ? `\n${profile.postalCode} ${profile.city}` : ''}${profile.email ? `\n${profile.email}` : ''}${profile.phone ? `\n${profile.phone}` : ''}`;
+
+    const recipientInfo = `${letter.recipient.status ? letter.recipient.status + ' ' : ''}${letter.recipient.firstName} ${letter.recipient.lastName}${letter.recipient.address ? `\n${letter.recipient.address}` : ''}${letter.recipient.postalCode && letter.recipient.city ? `\n${letter.recipient.postalCode} ${letter.recipient.city}` : ''}`;
+
+    const currentDate = formatDate(letter.createdAt);
+    const currentLocation = profile.city || 'Paris';
+
+    return {
+      sender: senderInfo,
+      recipient: recipientInfo,
+      date: currentDate,
+      location: currentLocation,
+      subject: letter.title,
+      content: letter.content || generateContentByType(letter.type, letter.data, letter.recipient)
+    };
+  };
+
+  const generateContentByType = (type: string, data: Record<string, any>, recipient: any) => {
+    const recipientName = `${recipient.status ? recipient.status + ' ' : ''}${recipient.firstName} ${recipient.lastName}`;
+    
+    switch (type) {
+      case 'motivation':
+        return `${recipientName},
+
+Je vous écris pour exprimer mon vif intérêt pour le poste de ${data.position || '[Poste]'} au sein de ${data.company || '[Entreprise]'}.
+
+${data.experience ? `Fort de mes ${data.experience} années d'expérience dans le domaine, ` : ''}je suis convaincu(e) que mon profil correspond parfaitement aux exigences de ce poste.
+
+${data.motivation || 'Votre entreprise m\'attire particulièrement par [raisons spécifiques].'}
+
+Je serais ravi(e) de pouvoir vous rencontrer pour discuter plus en détail de ma candidature et de ce que je peux apporter à votre équipe.
+
+Dans l'attente de votre retour, je vous prie d'agréer, ${recipientName}, l'expression de mes salutations distinguées.`;
+
+      case 'relance':
+        return `${recipientName},
+
+Nous nous permettons de vous relancer concernant la facture n° ${data.invoiceNumber || '[Numéro]'} d'un montant de ${data.amount || '[Montant]'} euros, échue le ${data.dueDate || '[Date]'}.
+
+${data.daysPastDue ? `Cette facture présente un retard de ${data.daysPastDue} jours.` : ''}
+
+Nous vous serions reconnaissants de bien vouloir régulariser cette situation dans les meilleurs délais.
+
+En cas de problème ou pour tout renseignement, n'hésitez pas à nous contacter.
+
+Cordialement.`;
+
+      case 'devis':
+        return `${recipientName},
+
+Nous souhaitons faire appel à vos services pour ${data.service || '[Service demandé]'}.
+
+${data.budget ? `Notre budget estimé pour ce projet est de ${data.budget} euros.` : ''}
+${data.deadline ? `Le délai souhaité pour la réalisation est de ${data.deadline}.` : ''}
+
+${data.requirements || 'Nous aimerions connaître vos disponibilités et vos tarifs pour ce projet.'}
+
+Nous vous prions de bien vouloir nous faire parvenir un devis détaillé.
+
+Dans l'attente de votre proposition, nous vous prions d'agréer nos salutations distinguées.`;
+
+      case 'reclamation':
+        return `${recipientName},
+
+Je me permets de vous contacter concernant ${data.issue || '[Problème rencontré]'}${data.orderNumber ? ` relatif à la commande n° ${data.orderNumber}` : ''}${data.purchaseDate ? ` effectuée le ${data.purchaseDate}` : ''}.
+
+${data.description || 'Description détaillée du problème rencontré.'}
+
+Je souhaiterais obtenir une solution rapide à ce problème et vous remercie par avance pour le traitement de ma demande.
+
+Cordialement.`;
+
+      case 'recommandation':
+        return `${recipientName},
+
+J'ai l'honneur de vous recommander ${data.personName || '[Nom de la personne]'}${data.position ? `, qui a occupé le poste de ${data.position}` : ''}${data.period ? ` durant la période ${data.period}` : ''}.
+
+${data.qualities || 'Cette personne a fait preuve de compétences exceptionnelles et de qualités humaines remarquables.'}
+
+Je recommande vivement cette personne et reste à votre disposition pour tout complément d'information.
+
+Cordialement.`;
+
+      case 'remerciement':
+        return `${recipientName},
+
+Je tenais à vous remercier pour ${data.reason || '[Motif de remerciement]'}${data.date ? ` en date du ${data.date}` : ''}.
+
+${data.specific || 'Votre professionnalisme et votre efficacité ont été particulièrement appréciés.'}
+
+C'est avec plaisir que je continuerai à faire appel à vos services et que je vous recommanderai.
+
+Avec mes remerciements renouvelés.`;
+
+      case 'administrative':
+        return `${recipientName},
+
+J'ai l'honneur de solliciter ${data.subject || '[Objet de la demande]'}${data.reference ? ` (Référence : ${data.reference})` : ''}.
+
+${data.details || 'Détails de la demande administrative.'}
+
+${data.urgency ? `Je souhaiterais obtenir une réponse dans un délai de ${data.urgency}.` : ''}
+
+Je vous remercie par avance pour l'attention que vous porterez à ma demande.
+
+Veuillez agréer, ${recipientName}, l'expression de mes salutations respectueuses.`;
+
+      case 'attestation':
+        return `${recipientName},
+
+Je vous prie de bien vouloir établir ${data.type || '[Type d\'attestation]'}${data.purpose ? ` destinée à ${data.purpose}` : ''}.
+
+${data.period ? `Cette attestation concerne la période du ${data.period}.` : ''}
+
+${data.additional || 'Informations complémentaires si nécessaire.'}
+
+Je vous remercie par avance pour votre diligence.
+
+Cordialement.`;
+
+      default:
+        return `${recipientName},
+
+Contenu du courrier généré automatiquement.
+
+Cordialement.`;
+    }
+  };
+
+  const letterContent = generateLetterContent();
+
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
