@@ -47,8 +47,9 @@ After rebuilding the native project (`npx expo prebuild && npx expo run:ios` or 
 ## Letter generation API
 
 Letters are generated using a remote service hosted at
-`https://assistant-backend-yrbx.onrender.com`. The app sends the letter type,
-recipient information and form data to the endpoint `/generate-letter`. The
-server returns the letter content in a formal style with a header and
-signature. If the request fails, an error message is displayed to the user.
+`https://assistant-backend-yrbx.onrender.com`. The app sends a single
+`prompt` string to the endpoint `/api/generate-letter`. The prompt contains the
+full text of the letter to be refined by ChatGPT. The server returns the letter
+content in a formal style with a header and signature. If the request fails, an
+error message is displayed to the user.
 
