@@ -6,7 +6,7 @@ import { useLetters } from '@/contexts/LetterContext';
 import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, FileText, Send, Loader } from 'lucide-react-native';
 import DatePicker from '@/components/DatePicker';
 import CitySelector from '@/components/CitySelector';
-import { generateLetterOnline } from '@/services/letterApi';
+import { generateLetter } from '@/services/letterApi';
 
 interface FormField {
   key: string;
@@ -123,13 +123,13 @@ export default function CreateLetterScreen() {
     return true;
   };
 
-  const generateLetter = async () => {
+  const handleGenerateLetter = async () => {
     if (!validateForm()) return;
 
     setIsGenerating(true);
 
     try {
-      const generatedContent = await generateLetterOnline(type || 'motivation', recipient, formData);
+      const generatedContent = await generateLetter(type || 'motivation', recipient, formData);
 
       const newLetter = {
         id: Date.now().toString(),
@@ -269,7 +269,7 @@ export default function CreateLetterScreen() {
             styles.generateButton,
             { backgroundColor: isGenerating ? colors.textSecondary : colors.primary }
           ]}
-          onPress={generateLetter}
+          onPress={handleGenerateLetter}
           disabled={isGenerating}
         >
           {isGenerating ? (

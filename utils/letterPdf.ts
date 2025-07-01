@@ -10,7 +10,7 @@ const formatDate = (date: Date) => {
   }).format(new Date(date));
 };
 
-const generateContentByType = (
+export const generateContentByType = (
   type: string,
   data: Record<string, any>,
   recipient: any,
