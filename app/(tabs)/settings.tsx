@@ -29,8 +29,8 @@ export default function SettingsScreen() {
     setTheme(selectedTheme);
   };
 
-  const handleLegalPage = (page: string) => {
-    Alert.alert('Page légale', `Ouverture de ${page}`);
+  const handleLegalPage = (slug: string) => {
+    router.push(`/legal/${slug}`);
   };
 
   const handleAction = (action: string) => {
@@ -127,21 +127,21 @@ export default function SettingsScreen() {
             'Mentions légales',
             'Informations sur l\'éditeur',
             Info,
-            () => handleLegalPage('Mentions légales')
+            () => handleLegalPage('mentions-legales')
           )}
           
           {renderSetting(
             'Conditions d\'utilisation',
             'Règles d\'usage de l\'application',
             FileText,
-            () => handleLegalPage('Conditions d\'utilisation')
+            () => handleLegalPage('conditions-utilisation')
           )}
           
           {renderSetting(
             'Politique RGPD',
             'Protection des données personnelles',
             Shield,
-            () => handleLegalPage('Politique RGPD')
+            () => handleLegalPage('politique-rgpd')
           )}
         </View>
 
