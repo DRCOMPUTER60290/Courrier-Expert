@@ -5,12 +5,14 @@ import { useLetters } from '@/contexts/LetterContext';
 import { useRouter } from 'expo-router';
 import { FileText, Share2, Download, Mail, Trash2, Calendar } from 'lucide-react-native';
 import * as Sharing from 'expo-sharing';
-import * as Print from 'expo-print';
 import * as MailComposer from 'expo-mail-composer';
+import { useUser } from '@/contexts/UserContext';
+import { generateLetterContent, generatePdf } from '@/utils/letterPdf';
 
 export default function HistoryScreen() {
   const { colors } = useTheme();
   const { letters, deleteLetter } = useLetters();
+  const { profile } = useUser();
   const router = useRouter();
 
   const handleLetterPress = (letterId: string) => {
@@ -22,27 +24,20 @@ export default function HistoryScreen() {
 
   const handleShare = async (letter: any) => {
     try {
+      const pdfUri = await generatePdf(letter, profile);
       if (Platform.OS === 'web') {
-        // Pour le web, utiliser l'API Web Share si disponible
         if (navigator.share) {
-          await navigator.share({
-            title: letter.title,
-            text: `Courrier: ${letter.title}`,
-            url: window.location.href
-          });
+          await navigator.share({ title: letter.title, url: pdfUri });
         } else {
-          Alert.alert('Partage', `Partage de "${letter.title}" - Fonctionnalité disponible sur mobile`);
+          const link = document.createElement('a');
+          link.href = pdfUri;
+          link.download = `${letter.title}.pdf`;
+          link.click();
         }
+      } else if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(pdfUri);
       } else {
-        // Pour mobile, utiliser expo-sharing
-        const isAvailable = await Sharing.isAvailableAsync();
-        if (isAvailable) {
-          // Créer un contenu temporaire à partager
-          const content = `Courrier: ${letter.title}\n\nCréé le: ${formatDate(letter.createdAt)}`;
-          Alert.alert('Partage', `Partage de "${letter.title}" en cours...`);
-        } else {
-          Alert.alert('Erreur', 'Le partage n\'est pas disponible sur cet appareil');
-        }
+        Alert.alert('Erreur', "Le partage n'est pas disponible sur cet appareil");
       }
     } catch (error) {
       Alert.alert('Erreur', 'Impossible de partager le courrier');
@@ -51,37 +46,16 @@ export default function HistoryScreen() {
 
   const handleDownload = async (letter: any) => {
     try {
+      const pdfUri = await generatePdf(letter, profile);
       if (Platform.OS === 'web') {
-        Alert.alert('Téléchargement', `Téléchargement de "${letter.title}" en PDF - Fonctionnalité disponible sur mobile`);
+        const link = document.createElement('a');
+        link.href = pdfUri;
+        link.download = `${letter.title}.pdf`;
+        link.click();
+      } else if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(pdfUri);
       } else {
-        // Générer le PDF avec expo-print
-        const htmlContent = `
-          <html>
-            <head>
-              <meta charset="utf-8">
-              <title>${letter.title}</title>
-              <style>
-                body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
-                .header { margin-bottom: 30px; }
-                .title { font-size: 18px; font-weight: bold; margin-bottom: 20px; }
-                .content { margin-bottom: 20px; }
-              </style>
-            </head>
-            <body>
-              <div class="header">
-                <div class="title">${letter.title}</div>
-                <div>Créé le: ${formatDate(letter.createdAt)}</div>
-              </div>
-              <div class="content">
-                <p>Destinataire: ${letter.recipient.firstName} ${letter.recipient.lastName}</p>
-                <p>${letter.content}</p>
-              </div>
-            </body>
-          </html>
-        `;
-        
-        const { uri } = await Print.printToFileAsync({ html: htmlContent });
-        Alert.alert('Succès', `PDF généré: ${letter.title}`);
+        Alert.alert('Erreur', "Le téléchargement n'est pas disponible sur cet appareil");
       }
     } catch (error) {
       Alert.alert('Erreur', 'Impossible de générer le PDF');
@@ -91,18 +65,21 @@ export default function HistoryScreen() {
   const handleEmail = async (letter: any) => {
     try {
       const isAvailable = await MailComposer.isAvailableAsync();
-      
+
       if (isAvailable) {
+        const pdfUri = await generatePdf(letter, profile);
+        const content = generateLetterContent(letter, profile);
         await MailComposer.composeAsync({
           recipients: [letter.recipient.email].filter(Boolean),
           subject: letter.title,
-          body: `Bonjour,\n\nVeuillez trouver ci-joint le courrier: ${letter.title}\n\nCordialement`,
+          body: `${content.content}\n\nCordialement,\n${profile.firstName} ${profile.lastName}`,
+          attachments: [pdfUri],
         });
       } else {
         Alert.alert('Email', 'Client email non disponible sur cet appareil');
       }
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible d\'ouvrir le client email');
+      Alert.alert('Erreur', "Impossible d'envoyer le courrier");
     }
   };
 
