@@ -46,22 +46,40 @@ After rebuilding the native project (`npx expo prebuild && npx expo run:ios` or 
 
 ## Letter generation API
 
-Letters are generated using a remote AI service hosted at `https://assistant-backend-yrbx.onrender.com`. The app sends a **prompt** string (constructed via `generateContentByType(type, data, recipient)`) to the endpoint `/api/generate-letter`. This prompt includes the letter type, recipient information and form data. The server uses AI to generate professional, personalized letter content.
+Letters are generated using a remote AI service hosted at `https://assistant-backend-yrbx.onrender.com`. The app sends **raw form data** to the endpoint `/api/generate-letter`. The server uses ChatGPT to generate professional, personalized letter content based on the letter type, recipient information, and form data.
 
 ### API Requirements
 
 - **Internet connection required**: The app requires an active internet connection to generate letters
-- **No offline mode**: All letter generation is handled by the remote server
+- **No offline mode**: All letter generation is handled by the remote server using AI
 - **Error handling**: The app provides clear feedback when generation fails due to network issues or server errors
 
 ### API Request Format
+
+The app now sends structured data instead of a pre-generated prompt:
 
 ```typescript
 POST https://assistant-backend-yrbx.onrender.com/api/generate-letter
 Content-Type: application/json
 
 {
-  "prompt": "Generated prompt string with letter type, recipient info, and form data"
+  "type": "motivation", // Letter type
+  "recipient": {
+    "firstName": "Jean",
+    "lastName": "Dupont",
+    "status": "Monsieur",
+    "address": "123 Rue de la Paix",
+    "postalCode": "75001",
+    "city": "Paris",
+    "email": "jean.dupont@email.com",
+    "phone": "01 23 45 67 89"
+  },
+  "data": {
+    "position": "Développeur Full-Stack",
+    "company": "TechCorp",
+    "experience": "3",
+    "motivation": "Passion pour l'innovation..."
+  }
 }
 ```
 
@@ -69,8 +87,16 @@ Content-Type: application/json
 
 ```typescript
 {
-  "content": "Generated letter content as a string"
+  "content": "Generated letter content as a string by ChatGPT"
 }
 ```
 
-The generated content is then formatted and displayed in the letter preview with proper sender/recipient information, date, and signature.
+The server processes this data with ChatGPT to generate a professional, personalized letter that is then formatted and displayed in the letter preview with proper sender/recipient information, date, and signature.
+
+### Debugging
+
+The app includes console logging to help debug the API integration:
+- Request data sent to server
+- Server response status
+- Generated content received
+- Error details if generation fails

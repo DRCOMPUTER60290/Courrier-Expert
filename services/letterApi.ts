@@ -1,30 +1,36 @@
 // services/letterApi.ts
-import { generateContentByType } from '@/utils/letterPdf';
 
 export async function generateLetter(
   type: string,
   recipient: any,
   data: Record<string, any>
 ): Promise<string> {
-  // 1. Génère le prompt à partir du type, des données et du destinataire
-  const prompt = generateContentByType(type, data, recipient);
+  console.log('Envoi des données au serveur:', { type, recipient, data });
 
-  // 2. Envoie ce prompt à l'API distante pour génération
+  // Envoie les données brutes au serveur pour que ChatGPT génère le courrier
   const response = await fetch(
     'https://assistant-backend-yrbx.onrender.com/api/generate-letter',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({ 
+        type,
+        recipient,
+        data
+      }),
     }
   );
 
+  console.log('Réponse du serveur:', response.status, response.statusText);
+
   if (!response.ok) {
     const errorText = await response.text();
+    console.error('Erreur serveur:', errorText);
     throw new Error(`Erreur du serveur: ${response.status} - ${errorText}`);
   }
 
   const result = await response.json();
+  console.log('Contenu reçu du serveur:', result);
   
   if (!result.content) {
     throw new Error('Réponse invalide du serveur: contenu manquant');
