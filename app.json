@@ -7,8 +7,11 @@
     "icon": "./assets/images/icon.png",
     "scheme": "courrierexpert",
     "userInterfaceStyle": "automatic",
+
     "jsEngine": "hermes",
     "newArchEnabled": true,
+
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true
     },
