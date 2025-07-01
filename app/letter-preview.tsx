@@ -1,196 +1,301 @@
-importer React depuis 'react' ;
-   
-importer { Vue , Texte , Feuille de style , ScrollView , TouchableOpacity , Alerte , Plateforme } depuis 'react-native' ;
- 
-importer { useRouter, useLocalSearchParams } depuis 'expo-router' ;
- 
-importer { useTheme } depuis '@/contexts/ThemeContext' ;
- 
-importer { useLetters } depuis '@/contexts/LetterContext' ;
- 
-importer { useUser } depuis '@/contexts/UserContext' ;
- 
-importer { ArrowLeft , Share2 , Download , Mail , Printer } depuis 'lucide-react-native' ;
- 
-importer * comme Partage depuis 'expo-sharing' ;
-   
-importer * comme Imprimer depuis 'expo-print' ;
-   
-importer * en tant que MailComposer depuis 'expo-mail-composer' ;
-   
-importer { generateLetterContent, generatePdf } depuis '@/utils/letterPdf' ;
- 
+// app/letter-preview.tsx
+import React, { useCallback, useMemo } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  Platform,
+} from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useLetters } from '@/contexts/LetterContext';
+import { useUser } from '@/contexts/UserContext';
+import { ArrowLeft, Share2, Download, Mail, Printer } from 'lucide-react-native';
+import * as Sharing from 'expo-sharing';
+import * as Print from 'expo-print';
+import * as MailComposer from 'expo-mail-composer';
+import { generateLetterContent, generatePdf, generateHtml } from '@/utils/letterPdf';
 
-fonction d'exportation par défaut LetterPreviewScreen ( ) {
-   
-  const { letterId } = useLocalSearchParams<{ letterId : string }>();
-  const { couleurs } = useTheme ();
-  const { lettres } = useLetters ();
-  const { profil } = useUser ();
-  const routeur = useRouter ();
+export default function LetterPreviewScreen() {
+  // 1. Récupère l'ID de la lettre depuis l'URL
+  const { letterId } = useLocalSearchParams<{ letterId: string }>();
+  const { colors } = useTheme();
+  const { letters } = useLetters();
+  const { profile } = useUser();
+  const router = useRouter();
 
-  const lettre = lettres.find ( l => l.id === letterId
- ) ;
+  // 2. Cherche la lettre dans le contexte
+  const letter = letters.find(l => l.id === letterId);
 
-  si (!lettre) {
-    retour (
-      < Afficher le style = {[styles.container, { backgroundColor: colors.background }]}>  
-        <Textstyle={[styles.errorText, { color:colors.error }]}>Courrier non trouvé</Text>  
-      </ Voir >
+  // 3. Génère le contenu textuel de la lettre
+  const content = useMemo(
+    () => (letter ? generateLetterContent(letter, profile) : null),
+    [letter, profile]
+  );
+
+  if (!letter || !content) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorText, { color: colors.error }]}>
+          Courrier non trouvé
+        </Text>
+      </View>
     );
   }
 
-  const handleShare = async ( ) => {
- 
-    essayer {
-      const pdfUri = await generatePdf (lettre, profil);
- 
-      si ( Plateforme . OS === 'web' ) {
-        si (navigateur. partager ) {
-          attendre navigator.share ( { titre : letter.title , url : pdfUri });
-        } autre {
-          const lien = document . createElement ( 'a' );
-          lien. href = pdfUri;
-          lien. télécharger = ` ${letter.title} .pdf` ;
-          lien. cliquez ();
+  // 4. Partage (Share API web / expo-sharing)
+  const shareFile = useCallback(
+    async (uri: string) => {
+      if (Platform.OS === 'web') {
+        if (navigator.share) {
+          await navigator.share({
+            title: letter.title,
+            url: uri,
+          });
+        } else {
+          const link = document.createElement('a');
+          link.href = uri;
+          link.download = `${letter.title}.pdf`;
+          link.click();
         }
-      } else if ( wait Sharing . isAvailableAsync ()) {
-  
-        attendre le partage . shareAsync (pdfUri);
- 
-      } autre {
+      } else if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri);
+      } else {
         Alert.alert('Erreur', "Le partage n'est pas disponible");
       }
-    } catch (erreur) {
+    },
+    [letter]
+  );
+
+  const handleShare = async () => {
+    try {
+      const uri = await generatePdf(letter, profile);
+      await shareFile(uri);
+    } catch {
       Alert.alert('Erreur', 'Impossible de partager le courrier');
     }
   };
 
-  const handleDownload = async ( ) => {
- 
-    essayer {
-      const pdfUri = await generatePdf (lettre, profil);
- 
-      si ( Plateforme . OS === 'web' ) {
-        const lien = document . createElement ( 'a' );
-        lien. href = pdfUri;
-        lien. télécharger = ` ${letter.title} .pdf` ;
-        lien. cliquez ();
-      } else if ( wait Sharing . isAvailableAsync ()) {
-  
-        attendre le partage . shareAsync (pdfUri);
- 
-      } autre {
+  // 5. Télécharger (même logique que partager sur web)
+  const handleDownload = async () => {
+    try {
+      const uri = await generatePdf(letter, profile);
+      if (Platform.OS === 'web') {
+        const link = document.createElement('a');
+        link.href = uri;
+        link.download = `${letter.title}.pdf`;
+        link.click();
+      } else if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri);
+      } else {
         Alert.alert('Erreur', "Le téléchargement n'est pas disponible");
       }
-    } catch (erreur) {
+    } catch {
       Alert.alert('Erreur', 'Impossible de générer le PDF');
     }
   };
 
-  const handleEmail = async ( ) => {
- 
-    essayer {
-      const isAvailable = await MailComposer . isAvailableAsync ();
- 
-
-      si (est disponible) {
-        const pdfUri = await generatePdf (lettre, profil);
- 
-        const letterContent = generateLetterContent (lettre, profil);
-        attendre MailComposer . composeAsync ({
- 
-          destinataires : [lettre. destinataire . email ]. filtre ( booléen ),
-          sujet : lettre. titre ,
-          corps : ` ${letterContent.content} \n\nCordialement,\n ${profile.firstName} ${profile.lastName} ` ,
- 
-          pièces jointes : [pdfUri],
-        });
-      } autre {
+  // 6. Email (expo-mail-composer)
+  const handleEmail = async () => {
+    try {
+      const isAvailable = await MailComposer.isAvailableAsync();
+      if (!isAvailable) {
         Alert.alert('Email', 'Client email non disponible');
+        return;
       }
-    } catch (erreur) {
+      const uri = await generatePdf(letter, profile);
+      await MailComposer.composeAsync({
+        recipients: [letter.recipient.email].filter(Boolean),
+        subject: letter.title,
+        body: `${content.content}\n\nCordialement,\n${profile.firstName} ${profile.lastName}`,
+        attachments: [uri],
+      });
+    } catch {
       Alert.alert('Erreur', "Impossible d'envoyer le courrier");
     }
   };
 
-  const handlePrint = async ( ) => {
- 
-    essayer {
-      si ( Plateforme . OS === 'web' ) {
-        fenêtre . print ();
-      } autre {
-        const letterContent = generateLetterContent ( lettre, profil );
-        const htmlContent = `
-          <html>
-            <tête>
-              <meta charset="utf-8">
-              <titre> ${lettre.titre} </titre>
-              <style>
-                corps { 
-                  famille de polices : Arial, sans-serif ; 
-                  marge : 40px ; 
-                  hauteur de ligne : 1,6 ; 
-                  couleur : #333;
-                }
-                .en-tête { 
-                  affichage : flex ; 
-                  justifier-contenu : espace-entre ; 
-                  marge inférieure : 40 px ; 
-                }
-                .sender { taille de police : 14 px ; }
-                .date { taille de police : 14 px ; alignement du texte : à droite ; }
-                .destinataire { marge inférieure : 30 px ; taille de police : 14 px ; }
-                .subject { marge inférieure : 30 px ; épaisseur de police : gras ; }
-                .contenu { marge inférieure : 40 px ; hauteur de ligne : 1,8 ; }
-                .signature { text-align: right; margin-top: 40px; }
-              </style>
-            </head>
-            <corps>
-              <div class="header">
-                <div class="sender"> ${letterContent.sender.replace(/\n/g, '<br>' )} </div>
-                <div class="date"> ${letterContent.location} , le ${letterContent.date} </div>
-              </div>
-              <div class="recipient"> ${letterContent.recipient.replace(/\n/g, '<br>' )} </div>
-              <div class="subject">Objet : ${letterContent.subject} </div>
-              <div class="content"> ${letterContent.content.replace(/\n/g, '<br><br>' )} </div>
-              <div class="signature"> ${profile.firstName} ${profile.lastName} </div>
- 
-            </body>
-          </html>
-        ` ;
-        
-        attendre Imprimer . printAsync ({ html : htmlContent });
- 
+  // 7. Imprimer (window.print / expo-print)
+  const handlePrint = async () => {
+    try {
+      if (Platform.OS === 'web') {
+        window.print();
+      } else {
+        const html = generateHtml(letter, profile);
+        await Print.printAsync({ html });
       }
-    } catch (erreur) {
-      Alert.alert('Erreur', 'Impossible d\'imprimer le courrier');
+    } catch {
+      Alert.alert('Erreur', "Impossible d'imprimer le courrier");
     }
   };
 
-  const letterContent = generateLetterContent (lettre, profil);
-
-  retour (
-    <Style de vue={[styles.container, { backgroundColor: colors.background }]}>
-      <Afficher le style={styles.header}>
-        <Opacité tactile 
+  // 8. Rendu de l'écran
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* En-tête avec le bouton retour */}
+      <View style={styles.header}>
+        <TouchableOpacity
           style={[styles.backButton, { backgroundColor: colors.surface }]}
-          onPress={() => routeur.back()}
+          onPress={() => router.back()}
         >
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Aperçu du courrier</Text>
+        <Text style={[styles.title, { color: colors.text }]}>
+          Aperçu du courrier
+        </Text>
       </View>
 
+      {/* Contenu de la lettre */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Style d'affichage={[styles.letterContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Afficher le style={styles.letterHeader}>
-            <Afficher le style={styles.senderInfo}>
-              <Text style={[styles.senderText, { color: colors.text }]}>{letterContent.sender}</Text>
+        <View
+          style={[
+            styles.letterContainer,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          {/* Expéditeur + date */}
+          <View style={styles.letterHeader}>
+            <View style={styles.senderInfo}>
+              <Text style={[styles.senderText, { color: colors.text }]}>
+                {content.sender}
+              </Text>
             </View>
-            <Style de vue={styles.dateLocation}>
-              <Style de texte={[styles.dateText, { couleur: couleurs.texte }]}>
-                {letterContent.location}, le {letterContent.date}
-              </Texte>
+            <View style={styles.dateLocation}>
+              <Text style={[styles.dateText, { color: colors.text }]}>
+                {content.location}, le {content.date}
+              </Text>
             </View>
           </View>
+
+          {/* Destinataire */}
+          <View style={styles.recipientInfo}>
+            <Text style={[styles.recipientText, { color: colors.text }]}>
+              {content.recipient}
+            </Text>
+          </View>
+
+          {/* Objet */}
+          <View style={styles.subjectLine}>
+            <Text style={[styles.subjectText, { color: colors.text }]}>
+              <Text style={{ fontFamily: 'Inter-SemiBold' }}>Objet : </Text>
+              {content.subject}
+            </Text>
+          </View>
+
+          {/* Corps du courrier */}
+          <View style={styles.letterBody}>
+            <Text style={[styles.bodyText, { color: colors.text }]}>
+              {content.content}
+            </Text>
+          </View>
+
+          {/* Signature */}
+          <View style={styles.signature}>
+            <Text style={[styles.signatureText, { color: colors.text }]}>
+              {profile.firstName} {profile.lastName}
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Barre d'actions */}
+      <View
+        style={[
+          styles.actionBar,
+          { backgroundColor: colors.surface, borderTopColor: colors.border },
+        ]}
+      >
+        <TouchableOpacity
+          style={[styles.actionButton, { backgroundColor: colors.accent }]}
+          onPress={handleShare}
+        >
+          <Share2 size={20} color="#fff" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionButton, { backgroundColor: colors.primary }]}
+          onPress={handleDownload}
+        >
+          <Download size={20} color="#fff" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionButton, { backgroundColor: colors.warning }]}
+          onPress={handleEmail}
+        >
+          <Mail size={20} color="#fff" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionButton, { backgroundColor: colors.secondary }]}
+          onPress={handlePrint}
+        >
+          <Printer size={20} color="#fff" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, paddingTop: 50 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  title: { fontSize: 20, fontFamily: 'Inter-Bold', flex: 1 },
+  content: { flex: 1, paddingHorizontal: 20 },
+  letterContainer: {
+    padding: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  letterHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 32,
+  },
+  senderInfo: { flex: 1 },
+  senderText: { fontSize: 14, fontFamily: 'Inter-Regular', lineHeight: 20 },
+  dateLocation: { alignItems: 'flex-end' },
+  dateText: { fontSize: 14, fontFamily: 'Inter-Regular' },
+  recipientInfo: { marginBottom: 24 },
+  recipientText: { fontSize: 14, fontFamily: 'Inter-Regular', lineHeight: 20 },
+  subjectLine: { marginBottom: 24 },
+  subjectText: { fontSize: 14, fontFamily: 'Inter-Regular' },
+  letterBody: { marginBottom: 32 },
+  bodyText: { fontSize: 16, fontFamily: 'Inter-Regular', lineHeight: 24 },
+  signature: { alignItems: 'flex-end' },
+  signatureText: { fontSize: 16, fontFamily: 'Inter-SemiBold' },
+  actionBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+  },
+  actionButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    textAlign: 'center',
+    marginTop: 100,
+  },
+});
