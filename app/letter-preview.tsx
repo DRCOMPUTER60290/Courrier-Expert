@@ -195,7 +195,7 @@ export default function LetterPreviewScreen() {
       date: currentDate,
       location: currentLocation,
       subject: letter.title,
-      content: generateContentByType(letter.type, letter.data, letter.recipient)
+      content: letter.content || generateContentByType(letter.type, letter.data, letter.recipient)
     };
   };
 
