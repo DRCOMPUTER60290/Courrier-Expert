@@ -32,24 +32,18 @@ After rebuilding the native project (`npx expo prebuild && npx expo run:ios` or 
 
 ## Major screens
 
-- **Home** – choose a letter type and view app statistics.
-- **Create Letter** – fill in recipient information and form fields; uses `DatePicker` and `CitySelector` components.
-- **Letter Preview** – view the generated letter and share, download, email or print it.
-- **History** – list of previously created letters with actions to share, download, email or delete.
-- **Profile** – manage user information such as name, company, address and avatar.
-- **Settings** – adjust app theme and view legal information.
+* **Home** – choose a letter type and view app statistics.
+* **Create Letter** – fill in recipient information and form fields; uses `DatePicker` and `CitySelector` components.
+* **Letter Preview** – view the generated letter and share, download, email or print it.
+* **History** – list of previously created letters with actions to share, download, email or delete.
+* **Profile** – manage user information such as name, company, address and avatar.
+* **Settings** – adjust app theme and view legal information.
 
 ## Components
 
-- `DatePicker` – modal date selector with formatted output.
-- `CitySelector` – choose a city based on postal code with search filtering.
+* `DatePicker` – modal date selector with formatted output.
+* `CitySelector` – choose a city based on postal code with search filtering.
 
 ## Letter generation API
 
-Letters are generated using a remote service hosted at
-`https://assistant-backend-yrbx.onrender.com`. The app sends a single
-`prompt` string to the endpoint `/api/generate-letter`. The prompt contains the
-full text of the letter to be refined by ChatGPT. The server returns the letter
-content in a formal style with a header and signature. If the request fails, an
-error message is displayed to the user.
-
+Letters are generated using a remote service hosted at `https://assistant-backend-yrbx.onrender.com`. The app sends a single **prompt** string (constructed via `generateContentByType(type, data, recipient)`) to the endpoint `/api/generate-letter`. This prompt includes the letter type, recipient information and form data. The server returns the letter content in a formal style with a header and signature. If the request fails, the app falls back to the offline generator (`generateLetterOffline`) or displays an error to the user.
