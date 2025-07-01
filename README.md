@@ -48,7 +48,7 @@ After rebuilding the native project (`npx expo prebuild && npx expo run:ios` or 
 
 Letters are generated using a remote service hosted at
 `https://assistant-backend-yrbx.onrender.com`. The app sends the letter type,
-recipient information and form data to the endpoint `/generate-letter`. The
+recipient information and form data to the endpoint `/api/generate-letter`. The
 server returns the letter content in a formal style with a header and
 signature. If the request fails, an error message is displayed to the user.
 
