@@ -44,3 +44,11 @@ After rebuilding the native project (`npx expo prebuild && npx expo run:ios` or 
 - `DatePicker` – modal date selector with formatted output.
 - `CitySelector` – choose a city based on postal code with search filtering.
 
+## Letter generation API
+
+Letters are generated using a remote service hosted at
+`https://assistant-backend-yrbx.onrender.com`. The app sends the letter type,
+recipient information and form data to the endpoint `/generate-letter`. The
+server returns the letter content in a formal style with a header and
+signature. If the request fails, an error message is displayed to the user.
+
