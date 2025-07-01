@@ -8,6 +8,7 @@ import { ArrowLeft, Share2, Download, Mail, Printer } from 'lucide-react-native'
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 import * as MailComposer from 'expo-mail-composer';
+import { generateLetterContent, generatePdf } from '@/utils/letterPdf';
 
 export default function LetterPreviewScreen() {
   const { letterId } = useLocalSearchParams<{ letterId: string }>();
@@ -28,23 +29,20 @@ export default function LetterPreviewScreen() {
 
   const handleShare = async () => {
     try {
+      const pdfUri = await generatePdf(letter, profile);
       if (Platform.OS === 'web') {
         if (navigator.share) {
-          await navigator.share({
-            title: letter.title,
-            text: `Courrier: ${letter.title}`,
-            url: window.location.href
-          });
+          await navigator.share({ title: letter.title, url: pdfUri });
         } else {
-          Alert.alert('Partage', 'Fonctionnalité de partage disponible sur mobile');
+          const link = document.createElement('a');
+          link.href = pdfUri;
+          link.download = `${letter.title}.pdf`;
+          link.click();
         }
+      } else if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(pdfUri);
       } else {
-        const isAvailable = await Sharing.isAvailableAsync();
-        if (isAvailable) {
-          Alert.alert('Partage', 'Partage du courrier en cours...');
-        } else {
-          Alert.alert('Erreur', 'Le partage n\'est pas disponible');
-        }
+        Alert.alert('Erreur', "Le partage n'est pas disponible");
       }
     } catch (error) {
       Alert.alert('Erreur', 'Impossible de partager le courrier');
@@ -53,50 +51,16 @@ export default function LetterPreviewScreen() {
 
   const handleDownload = async () => {
     try {
+      const pdfUri = await generatePdf(letter, profile);
       if (Platform.OS === 'web') {
-        Alert.alert('Téléchargement', 'Téléchargement PDF disponible sur mobile');
+        const link = document.createElement('a');
+        link.href = pdfUri;
+        link.download = `${letter.title}.pdf`;
+        link.click();
+      } else if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(pdfUri);
       } else {
-        const letterContent = generateLetterContent();
-        const htmlContent = `
-          <html>
-            <head>
-              <meta charset="utf-8">
-              <title>${letter.title}</title>
-              <style>
-                body { 
-                  font-family: Arial, sans-serif; 
-                  margin: 40px; 
-                  line-height: 1.6; 
-                  color: #333;
-                }
-                .header { 
-                  display: flex; 
-                  justify-content: space-between; 
-                  margin-bottom: 40px; 
-                }
-                .sender { font-size: 14px; }
-                .date { font-size: 14px; text-align: right; }
-                .recipient { margin-bottom: 30px; font-size: 14px; }
-                .subject { margin-bottom: 30px; font-weight: bold; }
-                .content { margin-bottom: 40px; line-height: 1.8; }
-                .signature { text-align: right; margin-top: 40px; }
-              </style>
-            </head>
-            <body>
-              <div class="header">
-                <div class="sender">${letterContent.sender.replace(/\n/g, '<br>')}</div>
-                <div class="date">${letterContent.location}, le ${letterContent.date}</div>
-              </div>
-              <div class="recipient">${letterContent.recipient.replace(/\n/g, '<br>')}</div>
-              <div class="subject">Objet : ${letterContent.subject}</div>
-              <div class="content">${letterContent.content.replace(/\n/g, '<br><br>')}</div>
-              <div class="signature">${profile.firstName} ${profile.lastName}</div>
-            </body>
-          </html>
-        `;
-        
-        const { uri } = await Print.printToFileAsync({ html: htmlContent });
-        Alert.alert('Succès', 'PDF généré avec succès');
+        Alert.alert('Erreur', "Le téléchargement n'est pas disponible");
       }
     } catch (error) {
       Alert.alert('Erreur', 'Impossible de générer le PDF');
@@ -106,19 +70,21 @@ export default function LetterPreviewScreen() {
   const handleEmail = async () => {
     try {
       const isAvailable = await MailComposer.isAvailableAsync();
-      
+
       if (isAvailable) {
-        const letterContent = generateLetterContent();
+        const pdfUri = await generatePdf(letter, profile);
+        const letterContent = generateLetterContent(letter, profile);
         await MailComposer.composeAsync({
           recipients: [letter.recipient.email].filter(Boolean),
           subject: letter.title,
           body: `${letterContent.content}\n\nCordialement,\n${profile.firstName} ${profile.lastName}`,
+          attachments: [pdfUri],
         });
       } else {
         Alert.alert('Email', 'Client email non disponible');
       }
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible d\'ouvrir le client email');
+      Alert.alert('Erreur', "Impossible d'envoyer le courrier");
     }
   };
 
@@ -127,7 +93,7 @@ export default function LetterPreviewScreen() {
       if (Platform.OS === 'web') {
         window.print();
       } else {
-        const letterContent = generateLetterContent();
+        const letterContent = generateLetterContent(letter, profile);
         const htmlContent = `
           <html>
             <head>
@@ -172,6 +138,9 @@ export default function LetterPreviewScreen() {
       Alert.alert('Erreur', 'Impossible d\'imprimer le courrier');
     }
   };
+
+
+  const letterContent = generateLetterContent(letter, profile);
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('fr-FR', {
@@ -312,6 +281,7 @@ Cordialement.`;
   };
 
   const letterContent = generateLetterContent();
+
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
