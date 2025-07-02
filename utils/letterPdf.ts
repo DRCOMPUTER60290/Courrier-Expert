@@ -10,34 +10,6 @@ const formatDate = (date: Date) => {
   }).format(new Date(date));
 };
 
-export const generateContentByType = (
-  type: string,
-  data: Record<string, any>,
-  recipient: any,
-) => {
-  const recipientName = `${recipient.status ? recipient.status + ' ' : ''}${recipient.firstName} ${recipient.lastName}`;
-
-  switch (type) {
-    case 'motivation':
-      return `${recipientName},\n\nJe vous écris pour exprimer mon vif intérêt pour le poste de ${data.position || '[Poste]'} au sein de ${data.company || '[Entreprise]'}.\n\n${data.experience ? `Fort de mes ${data.experience} années d'expérience dans le domaine, ` : ''}je suis convaincu(e) que mon profil correspond parfaitement aux exigences de ce poste.\n\n${data.motivation || "Votre entreprise m'attire particulièrement par [raisons spécifiques]."}\n\nJe serais ravi(e) de pouvoir vous rencontrer pour discuter plus en détail de ma candidature et de ce que je peux apporter à votre équipe.\n\nDans l'attente de votre retour, je vous prie d'agréer, ${recipientName}, l'expression de mes salutations distinguées.`;
-    case 'relance':
-      return `${recipientName},\n\nNous nous permettons de vous relancer concernant la facture n° ${data.invoiceNumber || '[Numéro]'} d'un montant de ${data.amount || '[Montant]'} euros, échue le ${data.dueDate || '[Date]'}.\n\n${data.daysPastDue ? `Cette facture présente un retard de ${data.daysPastDue} jours.` : ''}\n\nNous vous serions reconnaissants de bien vouloir régulariser cette situation dans les meilleurs délais.\n\nEn cas de problème ou pour tout renseignement, n'hésitez pas à nous contacter.\n\nCordialement.`;
-    case 'devis':
-      return `${recipientName},\n\nNous souhaitons faire appel à vos services pour ${data.service || '[Service demandé]'}.\n\n${data.budget ? `Notre budget estimé pour ce projet est de ${data.budget} euros.` : ''}${data.deadline ? ` Le délai souhaité pour la réalisation est de ${data.deadline}.` : ''}\n\n${data.requirements || 'Nous aimerions connaître vos disponibilités et vos tarifs pour ce projet.'}\n\nNous vous prions de bien vouloir nous faire parvenir un devis détaillé.\n\nDans l'attente de votre proposition, nous vous prions d'agréer nos salutations distinguées.`;
-    case 'reclamation':
-      return `${recipientName},\n\nJe me permets de vous contacter concernant ${data.issue || '[Problème rencontré]'}${data.orderNumber ? ` relatif à la commande n° ${data.orderNumber}` : ''}${data.purchaseDate ? ` effectuée le ${data.purchaseDate}` : ''}.\n\n${data.description || 'Description détaillée du problème rencontré.'}\n\nJe souhaiterais obtenir une solution rapide à ce problème et vous remercie par avance pour le traitement de ma demande.\n\nCordialement.`;
-    case 'recommandation':
-      return `${recipientName},\n\nJ'ai l'honneur de vous recommander ${data.personName || '[Nom de la personne]'}${data.position ? `, qui a occupé le poste de ${data.position}` : ''}${data.period ? ` durant la période ${data.period}` : ''}.\n\n${data.qualities || 'Cette personne a fait preuve de compétences exceptionnelles et de qualités humaines remarquables.'}\n\nJe recommande vivement cette personne et reste à votre disposition pour tout complément d'information.\n\nCordialement.`;
-    case 'remerciement':
-      return `${recipientName},\n\nJe tenais à vous remercier pour ${data.reason || '[Motif de remerciement]'}${data.date ? ` en date du ${data.date}` : ''}.\n\n${data.specific || 'Votre professionnalisme et votre efficacité ont été particulièrement appréciés.'}\n\nC'est avec plaisir que je continuerai à faire appel à vos services et que je vous recommanderai.\n\nAvec mes remerciements renouvelés.`;
-    case 'administrative':
-      return `${recipientName},\n\nJ'ai l'honneur de solliciter ${data.subject || '[Objet de la demande]'}${data.reference ? ` (Référence : ${data.reference})` : ''}.\n\n${data.details || 'Détails de la demande administrative.'}\n\n${data.urgency ? `Je souhaiterais obtenir une réponse dans un délai de ${data.urgency}.` : ''}\n\nJe vous remercie par avance pour l'attention que vous porterez à ma demande.\n\nVeuillez agréer, ${recipientName}, l'expression de mes salutations respectueuses.`;
-    case 'attestation':
-      return `${recipientName},\n\nJe vous prie de bien vouloir établir ${data.type || "[Type d'attestation]"}${data.purpose ? ` destinée à ${data.purpose}` : ''}.\n\n${data.period ? `Cette attestation concerne la période du ${data.period}.` : ''}\n\n${data.additional || 'Informations complémentaires si nécessaire.'}\n\nJe vous remercie par avance pour votre diligence.\n\nCordialement.`;
-    default:
-      return `${recipientName},\n\nContenu du courrier généré automatiquement.\n\nCordialement.`;
-  }
-};
 
 export const generateLetterContent = (
   letter: Letter,
