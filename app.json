@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "Courrier-Expert",
+    "slug": "courrier-expert",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "courrierexpert",
+    "userInterfaceStyle": "automatic",
+    "jsEngine": "hermes",
+    "newArchEnabled": false,
+    "ios": {
+      "supportsTablet": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      [
+        "@react-native-community/datetimepicker",
+        {}
+      ],
+	   [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3734567410194819~6091839396",
+          "iosAppId":    "ca-app-pub-3734567410194819~7319593910"
+        }
+      ],
+      "expo-router",
+      "expo-font",
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "android": {
+      "package": "com.drcomputer60290.courrierexpert"
+    }
+  }
+}
