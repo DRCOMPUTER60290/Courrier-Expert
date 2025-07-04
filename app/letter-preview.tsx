@@ -134,7 +134,7 @@ export default function LetterPreviewScreen() {
 
   // 8. Rendu de l'écran
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}> 
       {/* En-tête avec le bouton retour */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -143,7 +143,7 @@ export default function LetterPreviewScreen() {
         >
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={[styles.title, { color: colors.text }]}> 
           Aperçu du courrier
         </Text>
       </View>
@@ -156,16 +156,22 @@ export default function LetterPreviewScreen() {
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
-          {/* Adresse expéditeur + date */}
-          <View style={styles.senderDate}>
-            <Text style={[styles.senderText, { color: colors.text }]}>{content.sender}</Text>
-            <Text style={[styles.dateText, { color: colors.text }]}> {`${content.location}, le ${content.date}`} </Text>
+          {/* Adresse expéditeur en haut à gauche */}
+          <View style={{ alignItems: 'flex-start', marginBottom: 16 }}>
+            <Text style={[styles.senderText, { color: colors.text, textAlign: 'left' }]}>{content.sender}</Text>
           </View>
 
-          {/* Destinataire */}
-          <View style={styles.recipientInfo}>
-            <Text style={[styles.recipientText, { color: colors.text }]}> {content.recipient} </Text>
+          {/* Adresse destinataire à droite */}
+          <View style={{ alignItems: 'flex-end', marginBottom: 8 }}>
+            <Text style={[styles.recipientText, { color: colors.text, textAlign: 'right' }]}>{content.recipient}</Text>
           </View>
+
+          {/* Date à droite sous le destinataire */}
+          <View style={{ alignItems: 'flex-end', marginBottom: 24 }}>
+            <Text style={[styles.dateText, { color: colors.text, textAlign: 'right' }]}>{`${content.location}, le ${content.date}`}</Text>
+          </View>
+
+          {/* Objet en gras */}
           <View style={styles.subjectLine}>
             <Text style={[styles.subjectText, { color: colors.text }]}>Objet : {content.subject}</Text>
           </View>
@@ -184,7 +190,7 @@ export default function LetterPreviewScreen() {
 
           {/* Corps du courrier */}
           <View style={styles.letterBody}>
-            <Text style={[styles.bodyText, { color: colors.text }]}>{content.body}</Text>
+            <Text style={[styles.bodyText, { color: colors.text, textAlign: 'justify' }]}>{content.body}</Text>
           </View>
 
           {/* Conclusion */}
@@ -192,9 +198,9 @@ export default function LetterPreviewScreen() {
             <Text style={[styles.conclusionText, { color: colors.text }]}>{content.conclusion}</Text>
           </View>
 
-          {/* Signature */}
-          <View style={styles.signature}>
-            <Text style={[styles.signatureText, { color: colors.text }]}>
+          {/* Signature alignée à gauche */}
+          <View style={{ alignItems: 'flex-start', marginTop: 32 }}>
+            <Text style={[styles.signatureText, { color: colors.text }]}> 
               {profile.firstName} {profile.lastName}
             </Text>
           </View>
