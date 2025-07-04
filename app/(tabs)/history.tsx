@@ -8,6 +8,8 @@ import * as Sharing from 'expo-sharing';
 import * as MailComposer from 'expo-mail-composer';
 import { useUser } from '@/contexts/UserContext';
 import { generateLetterContent, generatePdf } from '@/utils/letterPdf';
+import MyBanner from '@/components/MyBanner';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function HistoryScreen() {
   const { colors } = useTheme();
@@ -182,6 +184,8 @@ export default function HistoryScreen() {
           <View style={{ height: 80 }} />
         </ScrollView>
       )}
+	   {/* Bannière AdMob */}
+      <MyBanner />
     </View>
   );
 }

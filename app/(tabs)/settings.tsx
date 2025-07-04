@@ -14,6 +14,8 @@ import {
   MessageCircle,
   Share2
 } from 'lucide-react-native';
+import MyBanner from '@/components/MyBanner';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function SettingsScreen() {
   const { colors, theme, setTheme } = useTheme();
@@ -155,6 +157,8 @@ export default function SettingsScreen() {
 
         <View style={{ height: 80 }} />
       </ScrollView>
+	    {/* Bannière AdMob */}
+      <MyBanner />
     </View>
   );
 }

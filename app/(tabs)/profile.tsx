@@ -5,6 +5,8 @@ import { useUser } from '@/contexts/UserContext';
 import { User, CreditCard as Edit3, Save, Camera, Mail, Phone, MapPin, Building } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import CitySelector from '@/components/CitySelector';
+import MyBanner from '@/components/MyBanner';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ProfileScreen() {
   const { colors } = useTheme();
@@ -179,7 +181,10 @@ export default function ProfileScreen() {
         )}
 
         <View style={{ height: 80 }} />
+		
       </ScrollView>
+	    {/* Bannière AdMob */}
+      <MyBanner />
     </View>
   );
 }

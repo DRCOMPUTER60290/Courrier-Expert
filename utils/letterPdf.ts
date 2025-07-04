@@ -20,7 +20,10 @@ export const generateLetterContent = (
   const recipientInfo = `${letter.recipient.status ? letter.recipient.status + ' ' : ''}${letter.recipient.firstName} ${letter.recipient.lastName}${letter.recipient.address ? `\n${letter.recipient.address}` : ''}${letter.recipient.postalCode && letter.recipient.city ? `\n${letter.recipient.postalCode} ${letter.recipient.city}` : ''}`;
 
   const currentDate = formatDate(letter.createdAt);
-  const currentLocation = profile.city || 'Paris';
+ // Si ton profile contient { city, postalCode, address }
+  const currentLocation = profile.city
+    ? `${profile.postalCode} ${profile.city}`
+    : 'Ville inconnue';
 
   return {
     sender: senderInfo,
@@ -51,11 +54,20 @@ export const generateHtml = (letter: Letter, profile: UserProfile) => {
         </style>
       </head>
       <body>
-        <div class="header">
-          <div class="sender">${content.sender.replace(/\n/g, '<br>')}</div>
-          <div class="date">${content.location}, le ${content.date}</div>
-        </div>
-        <div class="recipient">${content.recipient.replace(/\n/g, '<br>')}</div>
+         <!-- En-tête : expéditeur -->
+      <div class="header-sender">
+       ${content.sender.replace(/\n/g, '<br>')}
+      </div>
+
+      <!-- Bloc destinataire -->
+      <div class="header-recipient" style="margin-top:20px;">
+        ${content.recipient.replace(/\n/g, '<br>')}
+      </div>
+
+     <!-- Date & lieu alignés à droite -->
+      <div class="header-date" style="text-align:right; margin-top:20px;">
+        ${content.location}, le ${content.date}
+      </div>
         <div class="subject">Objet : ${content.subject}</div>
         <div class="content">${content.content.replace(/\n/g, '<br><br>')}</div>
         <div class="signature">${profile.firstName} ${profile.lastName}</div>
