@@ -1,21 +1,13 @@
-
 import { Tabs } from 'expo-router';
 import { Chrome as Home, History, User, Settings } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import React, { useEffect } from 'react';
-import { Slot, SplashScreen } from 'expo-router';
-import mobileAds from 'react-native-google-mobile-ads';
+import { initializeAdMob } from '@/utils/admobInitializer';
 
 export default function TabLayout() {
 	 useEffect(() => {
-    // 1) Initialise la SDK AdMob dès que l'app démarre
-    mobileAds()
-      .initialize()
-      .then(statuses => {
-        console.log('✅ AdMob initialized', statuses);
-        // 2) Quand AdMob est prêt, on peut masquer l'écran de splash
-        SplashScreen.hideAsync();
-      });
+    // Initialize AdMob (platform-specific implementation)
+    initializeAdMob();
   }, []);
 	
 	
