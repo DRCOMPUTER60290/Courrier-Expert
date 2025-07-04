@@ -1,103 +1,82 @@
-# Courrier-Expert
+## Principaux écrans
 
-Courrier-Expert is a React Native application built with **Expo Router** for generating and managing professional letters. It uses AI-powered letter generation through a remote server to create personalized, professional correspondence.
+* **Accueil** – choisissez un type de lettre et affichez les statistiques de l’application.
+ 
+* **Créer une lettre** – remplissez les informations du destinataire et les champs du formulaire ; utilise les composants « DatePicker » et « CitySelector » .
+ 
+* **Aperçu de la lettre** – visualisez la lettre générée et partagez-la, téléchargez-la, envoyez-la par e-mail ou imprimez-la.
+ 
+* **Historique** – liste des lettres précédemment créées avec des actions pour partager, télécharger, envoyer par e-mail ou supprimer.
+ 
+* **Profil** – gérer les informations utilisateur telles que le nom, l'entreprise, l'adresse et l'avatar.
+ 
+* **Paramètres** – ajustez le thème de l’application et affichez les informations légales.
+ 
 
-## Running locally
+## Composants
 
-1. Install dependencies:
+* `DatePicker` – sélecteur de date modal avec sortie formatée.
+ 
+* `CitySelector` – choisissez une ville en fonction du code postal avec filtrage de recherche.
+ 
 
-   ```bash
-   npm install
-   ```
+## API de génération de lettres
 
-2. Start the development server:
+Les lettres sont générées à l'aide d'un service d'IA distant hébergé sur https://assistant-backend-yrbx.onrender.com . L'application envoie les **données brutes du formulaire** au point de terminaison /api/generate-letter . Le serveur utilise ChatGPT pour générer un contenu professionnel et personnalisé en fonction du type de lettre, des informations du destinataire et des données du formulaire.
 
-   ```bash
-   npm run dev
-   # or
-   expo start
-   ```
+### Exigences de l'API
 
-   The app can then be opened in Expo Go or a simulator.
+- **Connexion Internet requise** : L'application nécessite une connexion Internet active pour générer des lettres
+ 
+- **Pas de mode hors ligne** : Toute la génération de lettres est gérée par le serveur distant à l'aide de l'IA
+ 
+- **Gestion des erreurs** : L'application fournit un retour clair lorsque la génération échoue en raison de problèmes de réseau ou d'erreurs de serveur
+ 
 
-### Using React Native DevTools
+### Format de requête API
 
-To enable the React Native DevTools, add the following to `app.json` under the `expo` key and rebuild:
+Le backend attend une chaîne « prompt » construite à partir des informations de la lettre :
 
-```json
-  "jsEngine": "hermes"
-```
-
-After rebuilding the native project (`npx expo prebuild && npx expo run:ios` or `npx expo run:android`), the DevTools will be available.
-
-## Major screens
-
-* **Home** – choose a letter type and view app statistics.
-* **Create Letter** – fill in recipient information and form fields; uses `DatePicker` and `CitySelector` components.
-* **Letter Preview** – view the generated letter and share, download, email or print it.
-* **History** – list of previously created letters with actions to share, download, email or delete.
-* **Profile** – manage user information such as name, company, address and avatar.
-* **Settings** – adjust app theme and view legal information.
-
-## Components
-
-* `DatePicker` – modal date selector with formatted output.
-* `CitySelector` – choose a city based on postal code with search filtering.
-
-## Letter generation API
-
-Letters are generated using a remote AI service hosted at `https://assistant-backend-yrbx.onrender.com`. The app sends **raw form data** to the endpoint `/api/generate-letter`. The server uses ChatGPT to generate professional, personalized letter content based on the letter type, recipient information, and form data.
-
-### API Requirements
-
-- **Internet connection required**: The app requires an active internet connection to generate letters
-- **No offline mode**: All letter generation is handled by the remote server using AI
-- **Error handling**: The app provides clear feedback when generation fails due to network issues or server errors
-
-### API Request Format
-
-The backend expects a `prompt` string built from the letter information:
-
-```typescript
-POST https://assistant-backend-yrbx.onrender.com/api/generate-letter
-Content-Type: application/json
+```tapuscrit
+PUBLICATION https://assistant-backend-yrbx.onrender.com/api/generate-letter
+Type de contenu : application/json
 
 {
   "prompt": "R\u00e9dige une lettre professionnelle de type ...",
-  "type": "motivation", // Letter type
-  "recipient": {
-    "firstName": "Jean",
+  "type": "motivation", // Type de lettre
+  "destinataire": {
+    "prénom": "Jean",
     "lastName": "Dupont",
     "status": "Monsieur",
     "address": "123 Rue de la Paix",
-    "postalCode": "75001",
-    "city": "Paris",
+    "code postal": "75001",
+    "ville": "Paris",
     "email": "jean.dupont@email.com",
-    "phone": "01 23 45 67 89"
+    "téléphone": "01 23 45 67 89"
   },
-  "data": {
+  "données": {
     "position": "Développeur Full-Stack",
-    "company": "TechCorp",
-    "experience": "3",
+    "entreprise": "TechCorp",
+    "expérience": "3",
     "motivation": "Passion pour l'innovation..."
   }
 }
 ```
 
-### API Response Format
+### Format de réponse de l'API
 
-```typescript
+```tapuscrit
 {
-  "content": "Generated letter content as a string by ChatGPT"
+  "content": "Contenu de la lettre généré sous forme de chaîne par ChatGPT"
 }
 ```
 
-The server processes this data with ChatGPT to generate a professional, personalized letter that is then formatted and displayed in the letter preview with proper sender/recipient information, date, and signature.
+Le serveur traite ces données avec ChatGPT pour générer une lettre professionnelle et personnalisée qui est ensuite formatée et affichée dans l'aperçu de la lettre avec les informations appropriées sur l'expéditeur/destinataire, la date et la signature.
 
-### Debugging
+### Débogage
 
-The app includes console logging to help debug the API integration:
-- Request data sent to server
-- Server response status
-- Generated content received
-- Error details if generation fails
+L'application inclut la journalisation de la console pour aider à déboguer l'intégration de l'API :
+- Demande de données envoyées au serveur
+- État de réponse du serveur
+- Contenu généré reçu
+- Détails de l'erreur si la génération échoue
