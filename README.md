@@ -56,13 +56,14 @@ Letters are generated using a remote AI service hosted at `https://assistant-bac
 
 ### API Request Format
 
-The app now sends structured data instead of a pre-generated prompt:
+The backend expects a `prompt` string built from the letter information:
 
 ```typescript
 POST https://assistant-backend-yrbx.onrender.com/api/generate-letter
 Content-Type: application/json
 
 {
+  "prompt": "R\u00e9dige une lettre professionnelle de type ...",
   "type": "motivation", // Letter type
   "recipient": {
     "firstName": "Jean",
