@@ -103,6 +103,7 @@ export default function ProfileScreen() {
         <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Informations personnelles</Text>
           
+          {renderField('Civilité', profile.status, 'status', User, 'Monsieur')}
           {renderField('Prénom', profile.firstName, 'firstName', User, 'Votre prénom')}
           {renderField('Nom', profile.lastName, 'lastName', User, 'Votre nom')}
           {renderField('Société', profile.company, 'company', Building, 'Nom de votre société')}

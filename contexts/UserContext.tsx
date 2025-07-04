@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 
 export interface UserProfile {
+  status: string;
   firstName: string;
   lastName: string;
   company: string;
@@ -19,6 +20,7 @@ interface UserContextType {
 }
 
 const defaultProfile: UserProfile = {
+  status: '',
   firstName: '',
   lastName: '',
   company: '',
