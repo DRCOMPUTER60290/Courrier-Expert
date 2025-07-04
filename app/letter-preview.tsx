@@ -110,7 +110,7 @@ export default function LetterPreviewScreen() {
       await MailComposer.composeAsync({
         recipients: [letter.recipient.email].filter(Boolean),
         subject: letter.title,
-        body: `${content.content}\n\nCordialement,\n${profile.firstName} ${profile.lastName}`,
+        body: `${content.body}\n\nCordialement,\n${profile.firstName} ${profile.lastName}`,
         attachments: [uri],
       });
     } catch {
@@ -156,18 +156,10 @@ export default function LetterPreviewScreen() {
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
-          {/* Expéditeur + date */}
-          <View style={styles.letterHeader}>
-            <View style={styles.senderInfo}>
-              <Text style={[styles.senderText, { color: colors.text }]}>
-                {content.sender}
-              </Text>
-            </View>
-            <View style={styles.dateLocation}>
-              <Text style={[styles.dateText, { color: colors.text }]}>
-                {content.location}, le {content.date}
-              </Text>
-            </View>
+          {/* Adresse expéditeur + date */}
+          <View style={styles.senderDate}>
+            <Text style={[styles.senderText, { color: colors.text }]}> {content.sender} </Text>
+            <Text style={[styles.dateText, { color: colors.text }]}> {content.date} </Text>
           </View>
 
           {/* Destinataire */}
@@ -177,19 +169,26 @@ export default function LetterPreviewScreen() {
             </Text>
           </View>
 
-          {/* Objet */}
-          <View style={styles.subjectLine}>
-            <Text style={[styles.subjectText, { color: colors.text }]}>
-              <Text style={{ fontFamily: 'Inter-SemiBold' }}>Objet : </Text>
-              {content.subject}
-            </Text>
+          {/* Référence */}
+          {content.reference ? (
+            <View style={styles.referenceLine}>
+              <Text style={[styles.referenceText, { color: colors.text }]}>Réf. : {content.reference}</Text>
+            </View>
+          ) : null}
+
+          {/* Salutation */}
+          <View style={styles.salutationLine}>
+            <Text style={[styles.salutationText, { color: colors.text }]}>{content.salutation}</Text>
           </View>
 
           {/* Corps du courrier */}
           <View style={styles.letterBody}>
-            <Text style={[styles.bodyText, { color: colors.text }]}>
-              {content.content}
-            </Text>
+            <Text style={[styles.bodyText, { color: colors.text }]}>{content.body}</Text>
+          </View>
+
+          {/* Conclusion */}
+          <View style={styles.conclusionLine}>
+            <Text style={[styles.conclusionText, { color: colors.text }]}>{content.conclusion}</Text>
           </View>
 
           {/* Signature */}
@@ -261,22 +260,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 16,
   },
-  letterHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 32,
-  },
-  senderInfo: { flex: 1 },
-  senderText: { fontSize: 14, fontFamily: 'Inter-Regular', lineHeight: 20 },
-  dateLocation: { alignItems: 'flex-end' },
+  senderDate: { alignItems: 'flex-end', marginBottom: 24 },
+  senderText: { fontSize: 14, fontFamily: 'Inter-Regular', lineHeight: 20, textAlign: 'right' },
   dateText: { fontSize: 14, fontFamily: 'Inter-Regular' },
   recipientInfo: { marginBottom: 24 },
   recipientText: { fontSize: 14, fontFamily: 'Inter-Regular', lineHeight: 20 },
-  subjectLine: { marginBottom: 24 },
-  subjectText: { fontSize: 14, fontFamily: 'Inter-Regular' },
-  letterBody: { marginBottom: 32 },
+  referenceLine: { marginBottom: 24 },
+  referenceText: { fontSize: 14, fontFamily: 'Inter-SemiBold', fontStyle: 'italic' },
+  salutationLine: { marginBottom: 24 },
+  salutationText: { fontSize: 14, fontFamily: 'Inter-Regular' },
+  letterBody: { marginBottom: 24 },
   bodyText: { fontSize: 16, fontFamily: 'Inter-Regular', lineHeight: 24 },
-  signature: { alignItems: 'flex-end' },
+  conclusionLine: { marginBottom: 24 },
+  conclusionText: { fontSize: 14, fontFamily: 'Inter-Regular' },
+  signature: { alignItems: 'flex-start' },
   signatureText: { fontSize: 16, fontFamily: 'Inter-SemiBold' },
   actionBar: {
     flexDirection: 'row',
