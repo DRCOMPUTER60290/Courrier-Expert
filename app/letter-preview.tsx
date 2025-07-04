@@ -158,15 +158,16 @@ export default function LetterPreviewScreen() {
         >
           {/* Adresse expéditeur + date */}
           <View style={styles.senderDate}>
-            <Text style={[styles.senderText, { color: colors.text }]}> {content.sender} </Text>
-            <Text style={[styles.dateText, { color: colors.text }]}> {content.date} </Text>
+            <Text style={[styles.senderText, { color: colors.text }]}>{content.sender}</Text>
+            <Text style={[styles.dateText, { color: colors.text }]}> {`${content.location}, le ${content.date}`} </Text>
           </View>
 
           {/* Destinataire */}
           <View style={styles.recipientInfo}>
-            <Text style={[styles.recipientText, { color: colors.text }]}>
-              {content.recipient}
-            </Text>
+            <Text style={[styles.recipientText, { color: colors.text }]}> {content.recipient} </Text>
+          </View>
+          <View style={styles.subjectLine}>
+            <Text style={[styles.subjectText, { color: colors.text }]}>Objet : {content.subject}</Text>
           </View>
 
           {/* Référence */}
@@ -265,6 +266,8 @@ const styles = StyleSheet.create({
   dateText: { fontSize: 14, fontFamily: 'Inter-Regular' },
   recipientInfo: { marginBottom: 24 },
   recipientText: { fontSize: 14, fontFamily: 'Inter-Regular', lineHeight: 20 },
+  subjectLine: { marginBottom: 24 },
+  subjectText: { fontSize: 14, fontFamily: 'Inter-SemiBold' },
   referenceLine: { marginBottom: 24 },
   referenceText: { fontSize: 14, fontFamily: 'Inter-SemiBold', fontStyle: 'italic' },
   salutationLine: { marginBottom: 24 },

@@ -70,6 +70,7 @@ export const generateHtml = (letter: Letter, profile: UserProfile) => {
           body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; color: #333; }
           .sender-date { text-align: right; margin-bottom: 20px; }
           .recipient { margin-bottom: 20px; font-size: 14px; }
+          .subject { margin-bottom: 20px; font-weight: bold; }
           .reference { margin-bottom: 20px; font-size: 14px; font-style: italic; }
           .salutation { margin-bottom: 20px; }
           .body { margin-bottom: 20px; line-height: 1.8; }
@@ -80,9 +81,10 @@ export const generateHtml = (letter: Letter, profile: UserProfile) => {
       <body>
         <div class="sender-date">
           <div class="sender">${content.sender.replace(/\n/g, '<br>')}</div>
-          <div class="date">${content.date}</div>
+          <div class="date">${content.location}, le ${content.date}</div>
         </div>
         <div class="recipient">${content.recipient.replace(/\n/g, '<br>')}</div>
+        <div class="subject">Objet : ${content.subject}</div>
         ${content.reference ? `<div class="reference">Réf. : ${content.reference}</div>` : ''}
         <p class="salutation">${content.salutation}</p>
         <div class="body">${content.body.replace(/\n/g, '<br><br>')}</div>
