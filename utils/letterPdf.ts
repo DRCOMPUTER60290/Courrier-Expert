@@ -31,7 +31,7 @@ export const generateLetterContent = (
 
   const isFemale =
     letter.recipient.status &&
-    /madame/i.test(letter.recipient.status);
+    /(madame|mme|mademoiselle)/i.test(letter.recipient.status);
 
   const salutation = letter.recipient.lastName
     ? `${isFemale ? 'Chère' : 'Cher'} ${

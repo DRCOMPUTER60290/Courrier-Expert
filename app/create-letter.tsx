@@ -280,7 +280,7 @@ export default function CreateLetterScreen() {
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Destinataire</Text>
           {renderRecipientField('firstName', 'Prénom', 'Prénom du destinataire', User)}
           {renderRecipientField('lastName', 'Nom', 'Nom du destinataire', User)}
-          {renderRecipientField('status', 'Statut', 'Monsieur, Madame, Docteur...', User)}
+          {renderRecipientField('status', 'Statut', 'Monsieur, Madame, Mademoiselle, Docteur...', User)}
           {renderRecipientField('address', 'Adresse', 'Adresse complète', MapPin)}
           {renderRecipientField('postalCode', 'Code postal', '75000', MapPin)}
           

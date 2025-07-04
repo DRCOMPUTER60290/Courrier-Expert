@@ -47,7 +47,7 @@ Type de contenu : application/json
   "destinataire": {
     "prénom": "Jean",
     "lastName": "Dupont",
-    "status": "Monsieur",
+    "status": "Madame",
     "address": "123 Rue de la Paix",
     "code postal": "75001",
     "ville": "Paris",
