@@ -72,7 +72,7 @@ export default function HistoryScreen() {
         await MailComposer.composeAsync({
           recipients: [letter.recipient.email].filter(Boolean),
           subject: letter.title,
-          body: `${content.content}\n\nCordialement,\n${profile.firstName} ${profile.lastName}`,
+          body: `${content.body}\n\nCordialement,\n${profile.firstName} ${profile.lastName}`,
           attachments: [pdfUri],
         });
       } else {

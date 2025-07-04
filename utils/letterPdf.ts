@@ -22,12 +22,39 @@ export const generateLetterContent = (
   const currentDate = formatDate(letter.createdAt);
   const currentLocation = profile.city || 'Paris';
 
+  const reference =
+    (letter.data &&
+      (letter.data.reference ||
+        letter.data.invoiceNumber ||
+        letter.data.orderNumber)) ||
+    '';
+
+  const isFemale =
+    letter.recipient.status &&
+    /madame/i.test(letter.recipient.status);
+
+  const salutation = letter.recipient.lastName
+    ? `${isFemale ? 'Chère' : 'Cher'} ${
+        letter.recipient.status ? letter.recipient.status + ' ' : ''
+      }${letter.recipient.lastName},`
+    : 'À qui de droit,';
+
+  const conclusion = letter.recipient.lastName
+    ? `Veuillez agréer, ${
+        letter.recipient.status ? letter.recipient.status + ' ' : ''
+      }${letter.recipient.lastName}, l'expression de mes sentiments respectueux.`
+    : 'Mes sincères salutations.';
+
   return {
     sender: senderInfo,
     recipient: recipientInfo,
     date: currentDate,
     location: currentLocation,
     subject: letter.title,
+    reference,
+    salutation,
+    body: letter.content,
+    conclusion,
     content: letter.content,
   };
 };
@@ -41,23 +68,25 @@ export const generateHtml = (letter: Letter, profile: UserProfile) => {
         <title>${letter.title}</title>
         <style>
           body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; color: #333; }
-          .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
-          .sender { font-size: 14px; }
-          .date { font-size: 14px; text-align: right; }
-          .recipient { margin-bottom: 30px; font-size: 14px; }
-          .subject { margin-bottom: 30px; font-weight: bold; }
-          .content { margin-bottom: 40px; line-height: 1.8; }
-          .signature { text-align: right; margin-top: 40px; }
+          .sender-date { text-align: right; margin-bottom: 20px; }
+          .recipient { margin-bottom: 20px; font-size: 14px; }
+          .reference { margin-bottom: 20px; font-size: 14px; font-style: italic; }
+          .salutation { margin-bottom: 20px; }
+          .body { margin-bottom: 20px; line-height: 1.8; }
+          .conclusion { margin-bottom: 40px; }
+          .signature { margin-top: 20px; }
         </style>
       </head>
       <body>
-        <div class="header">
+        <div class="sender-date">
           <div class="sender">${content.sender.replace(/\n/g, '<br>')}</div>
-          <div class="date">${content.location}, le ${content.date}</div>
+          <div class="date">${content.date}</div>
         </div>
         <div class="recipient">${content.recipient.replace(/\n/g, '<br>')}</div>
-        <div class="subject">Objet : ${content.subject}</div>
-        <div class="content">${content.content.replace(/\n/g, '<br><br>')}</div>
+        ${content.reference ? `<div class="reference">Réf. : ${content.reference}</div>` : ''}
+        <p class="salutation">${content.salutation}</p>
+        <div class="body">${content.body.replace(/\n/g, '<br><br>')}</div>
+        <p class="conclusion">${content.conclusion}</p>
         <div class="signature">${profile.firstName} ${profile.lastName}</div>
       </body>
     </html>
