@@ -1,3 +1,4 @@
+
 import { Tabs } from 'expo-router';
 import { Chrome as Home, History, User, Settings } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
