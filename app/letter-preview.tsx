@@ -156,17 +156,17 @@ export default function LetterPreviewScreen() {
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
-          {/* Adresse expéditeur en haut à gauche */}
-          <View style={{ alignItems: 'flex-start', marginBottom: 16 }}>
-            <Text style={[styles.senderText, { color: colors.text, textAlign: 'left' }]}>{content.sender}</Text>
+          {/* Bloc expéditeur à droite */}
+          <View style={{ alignItems: 'flex-end', marginBottom: 8 }}>
+            <Text style={[styles.senderText, { color: colors.text, textAlign: 'right' }]}>{content.sender}</Text>
           </View>
 
-          {/* Adresse destinataire à droite */}
+          {/* Bloc destinataire juste en dessous à droite */}
           <View style={{ alignItems: 'flex-end', marginBottom: 8 }}>
             <Text style={[styles.recipientText, { color: colors.text, textAlign: 'right' }]}>{content.recipient}</Text>
           </View>
 
-          {/* Date à droite sous le destinataire */}
+          {/* Date et lieu à droite sous le destinataire */}
           <View style={{ alignItems: 'flex-end', marginBottom: 24 }}>
             <Text style={[styles.dateText, { color: colors.text, textAlign: 'right' }]}>{`${content.location}, le ${content.date}`}</Text>
           </View>
