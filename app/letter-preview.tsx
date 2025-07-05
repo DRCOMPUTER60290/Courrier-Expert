@@ -12,11 +12,12 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLetters } from '@/contexts/LetterContext';
+import { useUser } from '@/contexts/UserContext';
 import { ArrowLeft, Share2, Download, Mail, Printer } from 'lucide-react-native';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 import * as MailComposer from 'expo-mail-composer';
-import { generatePdf } from '@/utils/letterPdf';
+import { generatePdf, generateHtml } from '@/utils/letterPdf';
 import { WebView } from 'react-native-webview';
 
 export default function LetterPreviewScreen() {
@@ -24,6 +25,7 @@ export default function LetterPreviewScreen() {
   const { letterId } = useLocalSearchParams<{ letterId: string }>();
   const { colors } = useTheme();
   const { letters } = useLetters();
+  const { profile } = useUser();
   const router = useRouter();
 
   // 2️⃣ Trouve la lettre
@@ -40,31 +42,8 @@ export default function LetterPreviewScreen() {
     );
   }
 
-  // 3️⃣ Nettoyage + wrapper HTML
-  let raw = content
-    // retire d’éventuels ```html ... ```
-    .replace(/^```(?:html)?\n?/, '')
-    .replace(/```$/, '');
-
-  const html = `
-    <html>
-      <head>
-        <meta charset="utf-8" />
-        <style>
-          body {
-            font-family: Arial;
-            margin: 20px;
-            line-height: 1.6;
-            background: #fff;
-            color: #000;
-          }
-        </style>
-      </head>
-      <body>
-        ${raw}
-      </body>
-    </html>
-  `;
+  // 3️⃣ Génère le HTML
+  const html = generateHtml(letter, profile);
 
   // 4️⃣ Partage / téléchargement / mail / impression
   const shareFile = useCallback(
@@ -89,7 +68,7 @@ export default function LetterPreviewScreen() {
 
   const handleShare = async () => {
     try {
-      const uri = await generatePdf(letter);
+      const uri = await generatePdf(letter, profile);
       await shareFile(uri);
     } catch {
       Alert.alert('Erreur', 'Impossible de partager le courrier');
@@ -98,7 +77,7 @@ export default function LetterPreviewScreen() {
 
   const handleDownload = async () => {
     try {
-      const uri = await generatePdf(letter);
+      const uri = await generatePdf(letter, profile);
       if (Platform.OS === 'web') {
         const link = document.createElement('a');
         link.href = uri;
@@ -121,7 +100,7 @@ export default function LetterPreviewScreen() {
         Alert.alert('Email', 'Client email non disponible');
         return;
       }
-      const uri = await generatePdf(letter);
+      const uri = await generatePdf(letter, profile);
       await MailComposer.composeAsync({
         recipients: [letter.recipient.email].filter(Boolean),
         subject: letter.title,

@@ -95,7 +95,8 @@ export const generateHtml = (letter: Letter, profile: UserProfile) => {
   `;
 };
 
-export const generatePdf = async (letter: Letter) => {
-  const { uri } = await Print.printToFileAsync({ html: letter.content });
+export const generatePdf = async (letter: Letter, profile: UserProfile) => {
+  const html = generateHtml(letter, profile);
+  const { uri } = await Print.printToFileAsync({ html });
   return uri;
 };
