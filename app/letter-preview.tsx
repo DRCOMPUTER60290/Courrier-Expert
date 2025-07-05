@@ -1,4 +1,5 @@
 // app/letter-preview.tsx
+
 import React, { useCallback } from 'react';
 import {
   View,
@@ -19,17 +20,15 @@ import { generatePdf } from '@/utils/letterPdf';
 import { WebView } from 'react-native-webview';
 
 export default function LetterPreviewScreen() {
-  // 1. Récupère l'ID de la lettre depuis l'URL
+  // 1️⃣ Récupère l’ID + contexte
   const { letterId } = useLocalSearchParams<{ letterId: string }>();
   const { colors } = useTheme();
   const { letters } = useLetters();
   const router = useRouter();
 
-  // 2. Cherche la lettre dans le contexte
+  // 2️⃣ Trouve la lettre
   const letter = letters.find(l => l.id === letterId);
-
-  // 3. Génère le contenu textuel de la lettre
-  const content = letter ? letter.content : null;
+  const content = letter?.content ?? null;
 
   if (!letter || !content) {
     return (
@@ -41,15 +40,38 @@ export default function LetterPreviewScreen() {
     );
   }
 
-  // 4. Partage (Share API web / expo-sharing)
+  // 3️⃣ Nettoyage + wrapper HTML
+  let raw = content
+    // retire d’éventuels ```html ... ```
+    .replace(/^```(?:html)?\n?/, '')
+    .replace(/```$/, '');
+
+  const html = `
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <style>
+          body {
+            font-family: Arial;
+            margin: 20px;
+            line-height: 1.6;
+            background: #fff;
+            color: #000;
+          }
+        </style>
+      </head>
+      <body>
+        ${raw}
+      </body>
+    </html>
+  `;
+
+  // 4️⃣ Partage / téléchargement / mail / impression
   const shareFile = useCallback(
     async (uri: string) => {
       if (Platform.OS === 'web') {
         if (navigator.share) {
-          await navigator.share({
-            title: letter.title,
-            url: uri,
-          });
+          await navigator.share({ title: letter.title, url: uri });
         } else {
           const link = document.createElement('a');
           link.href = uri;
@@ -74,7 +96,6 @@ export default function LetterPreviewScreen() {
     }
   };
 
-  // 5. Télécharger (même logique que partager sur web)
   const handleDownload = async () => {
     try {
       const uri = await generatePdf(letter);
@@ -86,14 +107,13 @@ export default function LetterPreviewScreen() {
       } else if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri);
       } else {
-        Alert.alert('Erreur', "Le téléchargement n'est pas disponible");
+        Alert.alert('Erreur', "Le téléchargement n’est pas disponible");
       }
     } catch {
       Alert.alert('Erreur', 'Impossible de générer le PDF');
     }
   };
 
-  // 6. Email (expo-mail-composer)
   const handleEmail = async () => {
     try {
       const isAvailable = await MailComposer.isAvailableAsync();
@@ -110,27 +130,26 @@ export default function LetterPreviewScreen() {
         isHtml: true,
       });
     } catch {
-      Alert.alert('Erreur', "Impossible d'envoyer le courrier");
+      Alert.alert('Erreur', "Impossible d’envoyer le courrier");
     }
   };
 
-  // 7. Imprimer (window.print / expo-print)
   const handlePrint = async () => {
     try {
       if (Platform.OS === 'web') {
         window.print();
       } else {
-        await Print.printAsync({ html: letter.content });
+        await Print.printAsync({ html });
       }
     } catch {
-      Alert.alert('Erreur', "Impossible d'imprimer le courrier");
+      Alert.alert('Erreur', "Impossible d’imprimer le courrier");
     }
   };
 
-  // 8. Rendu de l'écran
+  // 5️⃣ Rendu de la page
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}> 
-      {/* En-tête avec le bouton retour */}
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* En-tête retour + titre */}
       <View style={styles.header}>
         <TouchableOpacity
           style={[styles.backButton, { backgroundColor: colors.surface }]}
@@ -138,28 +157,21 @@ export default function LetterPreviewScreen() {
         >
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}> 
+        <Text style={[styles.title, { color: colors.text }]}>
           Aperçu du courrier
         </Text>
       </View>
 
-      {/* Contenu de la lettre */}
+      {/* Zone de prévisualisation */}
       <View style={styles.contentContainer}>
-        {Platform.OS === 'web' ? (
-          <div
-            style={{ flex: 1 }}
-            dangerouslySetInnerHTML={{ __html: letter.content }}
-          />
-        ) : (
-          <WebView
-            originWhitelist={['*']}
-            source={{ html: letter.content }}
-            style={styles.content}
-          />
-        )}
+        <WebView
+          originWhitelist={['*']}
+          source={{ html }}
+          style={[styles.content, { backgroundColor: '#fff' }]}
+        />
       </View>
 
-      {/* Barre d'actions */}
+      {/* Barre d’actions */}
       <View
         style={[
           styles.actionBar,
@@ -212,11 +224,15 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   title: { fontSize: 20, fontFamily: 'Inter-Bold', flex: 1 },
+
   contentContainer: {
     flex: 1,
     paddingHorizontal: 20,
   },
-  content: { flex: 1 },
+  content: {
+    flex: 1,
+  },
+
   actionBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -231,6 +247,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   errorText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
