@@ -1,11 +1,7 @@
 // services/letterApi.ts
 
 function buildPrompt(type: string, recipient: any, data: Record<string, any>): string {
-  const recipientInfo = `${recipient.status ? recipient.status + ' ' : ''}${recipient.firstName} ${recipient.lastName}`.trim();
-  const details = Object.entries(data)
-    .map(([key, value]) => `${key}: ${value}`)
-    .join(', ');
-  return `Rédige une lettre professionnelle de type "${type}" pour ${recipientInfo}. Informations supplémentaires: ${details}.`;
+  return `Rédige la lettre de type "${type}" en HTML complet (balises <p>, <br>…), incluant l'adresse de l'expéditeur, celle du destinataire, l'objet et la signature.`;
 }
 
 export async function generateLetter(
@@ -21,7 +17,7 @@ export async function generateLetter(
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type, recipient, data, prompt }),
+      body: JSON.stringify({ type, recipient, data, prompt, format: 'html' }),
     }
   );
 

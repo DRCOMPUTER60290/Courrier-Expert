@@ -1,10 +1,9 @@
 // app/letter-preview.tsx
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Alert,
   Platform,
@@ -12,29 +11,25 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLetters } from '@/contexts/LetterContext';
-import { useUser } from '@/contexts/UserContext';
 import { ArrowLeft, Share2, Download, Mail, Printer } from 'lucide-react-native';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 import * as MailComposer from 'expo-mail-composer';
-import { generateLetterContent, generatePdf, generateHtml } from '@/utils/letterPdf';
+import { generatePdf } from '@/utils/letterPdf';
+import { WebView } from 'react-native-webview';
 
 export default function LetterPreviewScreen() {
   // 1. Récupère l'ID de la lettre depuis l'URL
   const { letterId } = useLocalSearchParams<{ letterId: string }>();
   const { colors } = useTheme();
   const { letters } = useLetters();
-  const { profile } = useUser();
   const router = useRouter();
 
   // 2. Cherche la lettre dans le contexte
   const letter = letters.find(l => l.id === letterId);
 
   // 3. Génère le contenu textuel de la lettre
-  const content = useMemo(
-    () => (letter ? generateLetterContent(letter, profile) : null),
-    [letter, profile]
-  );
+  const content = letter ? letter.content : null;
 
   if (!letter || !content) {
     return (
@@ -72,7 +67,7 @@ export default function LetterPreviewScreen() {
 
   const handleShare = async () => {
     try {
-      const uri = await generatePdf(letter, profile);
+      const uri = await generatePdf(letter);
       await shareFile(uri);
     } catch {
       Alert.alert('Erreur', 'Impossible de partager le courrier');
@@ -82,7 +77,7 @@ export default function LetterPreviewScreen() {
   // 5. Télécharger (même logique que partager sur web)
   const handleDownload = async () => {
     try {
-      const uri = await generatePdf(letter, profile);
+      const uri = await generatePdf(letter);
       if (Platform.OS === 'web') {
         const link = document.createElement('a');
         link.href = uri;
@@ -106,12 +101,13 @@ export default function LetterPreviewScreen() {
         Alert.alert('Email', 'Client email non disponible');
         return;
       }
-      const uri = await generatePdf(letter, profile);
+      const uri = await generatePdf(letter);
       await MailComposer.composeAsync({
         recipients: [letter.recipient.email].filter(Boolean),
         subject: letter.title,
-        body: `${content.body}\n\nCordialement,\n${profile.firstName} ${profile.lastName}`,
+        body: letter.content,
         attachments: [uri],
+        isHtml: true,
       });
     } catch {
       Alert.alert('Erreur', "Impossible d'envoyer le courrier");
@@ -124,8 +120,7 @@ export default function LetterPreviewScreen() {
       if (Platform.OS === 'web') {
         window.print();
       } else {
-        const html = generateHtml(letter, profile);
-        await Print.printAsync({ html });
+        await Print.printAsync({ html: letter.content });
       }
     } catch {
       Alert.alert('Erreur', "Impossible d'imprimer le courrier");
@@ -149,63 +144,7 @@ export default function LetterPreviewScreen() {
       </View>
 
       {/* Contenu de la lettre */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View
-          style={[
-            styles.letterContainer,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-        >
-          {/* Bloc expéditeur à droite */}
-          <View style={{ alignItems: 'flex-end', marginBottom: 8 }}>
-            <Text style={[styles.senderText, { color: colors.text, textAlign: 'right' }]}>{content.sender}</Text>
-          </View>
-
-          {/* Bloc destinataire juste en dessous à droite */}
-          <View style={{ alignItems: 'flex-end', marginBottom: 8 }}>
-            <Text style={[styles.recipientText, { color: colors.text, textAlign: 'right' }]}>{content.recipient}</Text>
-          </View>
-
-          {/* Date et lieu à droite sous le destinataire */}
-          <View style={{ alignItems: 'flex-end', marginBottom: 24 }}>
-            <Text style={[styles.dateText, { color: colors.text, textAlign: 'right' }]}>{`${content.location}, le ${content.date}`}</Text>
-          </View>
-
-          {/* Objet en gras */}
-          <View style={styles.subjectLine}>
-            <Text style={[styles.subjectText, { color: colors.text }]}>Objet : {content.subject}</Text>
-          </View>
-
-          {/* Référence */}
-          {content.reference ? (
-            <View style={styles.referenceLine}>
-              <Text style={[styles.referenceText, { color: colors.text }]}>Réf. : {content.reference}</Text>
-            </View>
-          ) : null}
-
-          {/* Salutation */}
-          <View style={styles.salutationLine}>
-            <Text style={[styles.salutationText, { color: colors.text }]}>{content.salutation}</Text>
-          </View>
-
-          {/* Corps du courrier */}
-          <View style={styles.letterBody}>
-            <Text style={[styles.bodyText, { color: colors.text, textAlign: 'justify' }]}>{content.body}</Text>
-          </View>
-
-          {/* Conclusion */}
-          <View style={styles.conclusionLine}>
-            <Text style={[styles.conclusionText, { color: colors.text }]}>{content.conclusion}</Text>
-          </View>
-
-          {/* Signature alignée à gauche */}
-          <View style={{ alignItems: 'flex-start', marginTop: 32 }}>
-            <Text style={[styles.signatureText, { color: colors.text }]}> 
-              {profile.firstName} {profile.lastName}
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
+      <WebView originWhitelist={['*']} source={{ html: letter.content }} style={styles.content} />
 
       {/* Barre d'actions */}
       <View
@@ -261,29 +200,6 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 20, fontFamily: 'Inter-Bold', flex: 1 },
   content: { flex: 1, paddingHorizontal: 20 },
-  letterContainer: {
-    padding: 24,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 16,
-  },
-  senderDate: { alignItems: 'flex-end', marginBottom: 24 },
-  senderText: { fontSize: 14, fontFamily: 'Inter-Regular', lineHeight: 20, textAlign: 'right' },
-  dateText: { fontSize: 14, fontFamily: 'Inter-Regular' },
-  recipientInfo: { marginBottom: 24 },
-  recipientText: { fontSize: 14, fontFamily: 'Inter-Regular', lineHeight: 20 },
-  subjectLine: { marginBottom: 24 },
-  subjectText: { fontSize: 14, fontFamily: 'Inter-SemiBold' },
-  referenceLine: { marginBottom: 24 },
-  referenceText: { fontSize: 14, fontFamily: 'Inter-SemiBold', fontStyle: 'italic' },
-  salutationLine: { marginBottom: 24 },
-  salutationText: { fontSize: 14, fontFamily: 'Inter-Regular' },
-  letterBody: { marginBottom: 24 },
-  bodyText: { fontSize: 16, fontFamily: 'Inter-Regular', lineHeight: 24 },
-  conclusionLine: { marginBottom: 24 },
-  conclusionText: { fontSize: 14, fontFamily: 'Inter-Regular' },
-  signature: { alignItems: 'flex-start' },
-  signatureText: { fontSize: 16, fontFamily: 'Inter-SemiBold' },
   actionBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',

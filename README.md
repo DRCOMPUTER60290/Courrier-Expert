@@ -42,7 +42,7 @@ PUBLICATION https://assistant-backend-yrbx.onrender.com/api/generate-letter
 Type de contenu : application/json
 
 {
-  "prompt": "R\u00e9dige une lettre professionnelle de type ...",
+  "prompt": "R\u00e9dige la lettre de type \"motivation\" en HTML complet (balises <p>, <br>\u2026), incluant l'adresse de l'exp\u00e9diteur, celle du destinataire, l'objet et la signature.",
   "type": "motivation", // Type de lettre
   "destinataire": {
     "prénom": "Jean",
@@ -67,11 +67,11 @@ Type de contenu : application/json
 
 ```tapuscrit
 {
-  "content": "Contenu de la lettre généré sous forme de chaîne par ChatGPT"
+  "content": "<p>Contenu HTML complet de la lettre...</p>"
 }
 ```
 
-Le serveur traite ces données avec ChatGPT pour générer une lettre professionnelle et personnalisée qui est ensuite formatée et affichée dans l'aperçu de la lettre avec les informations appropriées sur l'expéditeur/destinataire, la date et la signature.
+Le champ `content` renvoie désormais le HTML préformaté de la lettre. Il peut donc être affiché directement dans l'application sans traitement supplémentaire.
 
 ### Débogage
 
