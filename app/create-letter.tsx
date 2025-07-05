@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLetters } from '@/contexts/LetterContext';
@@ -153,10 +153,15 @@ export default function CreateLetterScreen() {
 
       addLetter(newLetter);
 
-      Alert.alert(
-        'Succès',
-        'Votre courrier a été généré avec succès !',
-        [
+      if (Platform.OS === 'web') {
+        // On the web, Alert ignores custom buttons, so navigate directly
+        Alert.alert('Succès', 'Votre courrier a été généré avec succès !');
+        router.replace({
+          pathname: '/letter-preview',
+          params: { letterId: newLetter.id }
+        });
+      } else {
+        Alert.alert('Succès', 'Votre courrier a été généré avec succès !', [
           {
             text: 'Voir le courrier',
             onPress: () => {
@@ -166,8 +171,8 @@ export default function CreateLetterScreen() {
               });
             }
           }
-        ]
-      );
+        ]);
+      }
     } catch (error) {
       console.error('Erreur de génération:', error);
       const errorMessage = error instanceof Error ? error.message : 'Une erreur inconnue est survenue';
