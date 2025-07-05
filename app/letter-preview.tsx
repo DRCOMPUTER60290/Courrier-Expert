@@ -144,7 +144,20 @@ export default function LetterPreviewScreen() {
       </View>
 
       {/* Contenu de la lettre */}
-      <WebView originWhitelist={['*']} source={{ html: letter.content }} style={styles.content} />
+      <View style={styles.contentContainer}>
+        {Platform.OS === 'web' ? (
+          <div
+            style={{ flex: 1 }}
+            dangerouslySetInnerHTML={{ __html: letter.content }}
+          />
+        ) : (
+          <WebView
+            originWhitelist={['*']}
+            source={{ html: letter.content }}
+            style={styles.content}
+          />
+        )}
+      </View>
 
       {/* Barre d'actions */}
       <View
@@ -199,7 +212,11 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   title: { fontSize: 20, fontFamily: 'Inter-Bold', flex: 1 },
-  content: { flex: 1, paddingHorizontal: 20 },
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  content: { flex: 1 },
   actionBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
