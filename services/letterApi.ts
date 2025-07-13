@@ -26,24 +26,69 @@ function buildPrompt(
   }${recipient.firstName} ${recipient.lastName}`.trim();
 
   const senderInfo = `${profile.firstName} ${profile.lastName}`.trim();
+  const senderAddress = `${profile.address}\n${profile.postalCode} ${profile.city}`.trim();
+  const senderContact = `Téléphone : ${profile.phone}\nEmail : ${profile.email}`;
 
-  const address = `${profile.address}, ${profile.postalCode} ${profile.city}`.trim();
-
-  const contact = `Téléphone: ${profile.phone}, Email: ${profile.email}`;
+  const recipientAddress = recipient.address ? 
+    `${recipientInfo}\n${recipient.address}\n${recipient.postalCode} ${recipient.city}` :
+    recipientInfo;
 
   const details = Object.entries(data)
+    .filter(([_, value]) => value && value.toString().trim())
     .map(([key, value]) => `${key}: ${value}`)
     .join(', ');
 
-  const headerLine = `${profile.city}, le ${currentDate}`;
+  const locationDate = `${profile.city}, le ${currentDate}`;
 
   return (
-    'Tu es un assistant qui rédige des lettres officielles au format administratif français. ' +
-    "Les coordonnées de l'expéditeur doivent être placées en haut du courrier avant celles du destinataire. " +
-    `Le contenu de la lettre doit commencer par "${headerLine}". ` +
-    `Type: ${type}. Objet: ${subject}. Corps: ${body}. ` +
-    `Expéditeur: ${senderInfo}, ${address}. ${contact}. ` +
-    `Destinataire: ${recipientInfo}. Informations supplémentaires: ${details}.`
+    `Tu es un expert en rédaction de courriers administratifs français. Tu dois rédiger une lettre officielle respectant scrupuleusement le format administratif français standard.
+
+STRUCTURE OBLIGATOIRE À RESPECTER :
+
+1. COORDONNÉES DE L'EXPÉDITEUR (en haut à gauche) :
+${senderInfo}
+${senderAddress}
+${senderContact}
+
+2. COORDONNÉES DU DESTINATAIRE (à droite, aligné) :
+${recipientAddress}
+
+3. LIEU ET DATE (à droite) :
+${locationDate}
+
+4. OBJET (en gras, centré ou aligné à gauche) :
+Objet : ${subject || `Courrier de type ${type}`}
+
+5. FORMULE D'APPEL appropriée :
+- "${recipient.status || 'Madame, Monsieur'}," (suivi d'une virgule)
+
+6. CORPS DE LA LETTRE :
+- Paragraphes justifiés
+- Première ligne de chaque paragraphe avec alinéa
+- Espacement entre les paragraphes
+- Ton professionnel et respectueux
+- Contenu adapté au type de courrier : ${type}
+
+7. FORMULE DE POLITESSE (avant la signature) :
+- Formule française standard appropriée au contexte
+- Reprendre la formule d'appel dans la formule de politesse
+
+8. SIGNATURE :
+${senderInfo}
+
+RÈGLES TYPOGRAPHIQUES :
+- Utiliser des majuscules appropriées
+- Respecter la ponctuation française
+- Aérer le texte avec des sauts de ligne
+- Pas de formatage HTML ou Markdown
+
+INFORMATIONS À INTÉGRER :
+Type de courrier : ${type}
+${subject ? `Objet spécifié : ${subject}` : ''}
+${body ? `Contenu personnalisé : ${body}` : ''}
+${details ? `Données complémentaires : ${details}` : ''}
+
+Rédige maintenant la lettre complète en respectant exactement cette structure et ces règles.`
   );
 }
 
