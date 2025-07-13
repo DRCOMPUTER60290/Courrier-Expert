@@ -15,28 +15,40 @@ function buildPrompt(
   type: string,
   recipient: any,
   profile: UserProfile,
+  subject: string,
+  body: string,
   data: Record<string, any>
 ): string {
   const recipientInfo = `${
     recipient.status ? recipient.status + ' ' : ''
   }${recipient.firstName} ${recipient.lastName}`.trim();
-  const senderInfo = `${
-    profile.firstName
-  } ${profile.lastName}${profile.company ? `, ${profile.company}` : ''}`.trim();
+
+  const senderInfo = `${profile.firstName} ${profile.lastName}`.trim();
+
+  const address = `${profile.address}, ${profile.postalCode} ${profile.city}`.trim();
+
+  const contact = `Téléphone: ${profile.phone}, Email: ${profile.email}`;
+
   const details = Object.entries(data)
     .map(([key, value]) => `${key}: ${value}`)
     .join(', ');
-  return `Rédige une lettre professionnelle de type "${type}". Expéditeur: ${senderInfo}. Destinataire: ${recipientInfo}. Informations supplémentaires: ${details}.`;
+
+  return `Tu es un assistant qui rédige des lettres officielles au format administratif français. ` +
+    `Type: ${type}. Objet: ${subject}. Corps: ${body}. ` +
+    `Expéditeur: ${senderInfo}, ${address}. ${contact}. ` +
+    `Destinataire: ${recipientInfo}. Informations supplémentaires: ${details}.`;
 }
 
 export async function generateLetter(
   type: string,
   recipient: any,
   profile: UserProfile,
+  subject: string,
+  body: string,
   data: Record<string, any>
 ): Promise<string> {
-  const prompt = buildPrompt(type, recipient, profile, data);
-  console.log('Envoi des données au serveur:', { type, recipient, profile, data, prompt });
+  const prompt = buildPrompt(type, recipient, profile, subject, body, data);
+  console.log('Envoi des données au serveur:', { type, recipient, profile, subject, body, data, prompt });
 
   const maxRetries = 3;
   let attempt = 0;
@@ -48,7 +60,7 @@ export async function generateLetter(
     response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type, recipient, profile, data, prompt }),
+      body: JSON.stringify({ type, recipient, profile, subject, body, data, prompt }),
     });
 
     console.log('Réponse du serveur:', response.status, response.statusText);

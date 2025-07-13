@@ -54,25 +54,30 @@ After rebuilding the native project (`npx expo prebuild && npx expo run:ios` or 
 
 ## Letter generation API
 
-Letters are generated using a remote AI service whose base URL is defined by the `BACKEND_URL` environment variable. The app sends **raw form data** to the endpoint `/api/generate-letter`. The server uses ChatGPT to generate professional, personalized letter content based on the letter type, recipient information, and form data.
+Letters are generated using a remote AI service whose base URL is defined by the `BACKEND_URL` environment variable. The API prompt now starts with:
+
+```
+Tu es un assistant qui rédige des lettres officielles au format administratif français
+```
+
+The app sends structured data to `/api/generate-letter` which the server turns into a detailed prompt including the letter type, recipient, subject, body and sender profile.
 
 ### API Requirements
 
-- **Internet connection required**: The app requires an active internet connection to generate letters
-- **No offline mode**: All letter generation is handled by the remote server using AI
-- **Error handling**: The app provides clear feedback when generation fails due to network issues or server errors
+* **Internet connection required**: The app requires an active internet connection to generate letters.
+* **No offline mode**: All letter generation is handled by the remote server using AI.
+* **Error handling**: The app provides clear feedback when generation fails due to network issues or server errors.
 
 ### API Request Format
 
-The app sends structured form values along with a pre-built `prompt` string:
+The client sends the following JSON payload in the `POST` body to the endpoint `${BACKEND_URL}/api/generate-letter`:
 
-```typescript
-POST $BACKEND_URL/api/generate-letter
-Content-Type: application/json
-
+```json
 {
-  "type": "motivation", // Letter type
-  "recipient": {
+  "type": "motivation",                // Letter type identifier
+  "subject": "Objet du courrier",      // Objet de la lettre (facultatif)
+  "body": "Texte libre saisi par l'utilisateur", // Contenu principal (facultatif)
+  "recipient": {                         // Coordonnées du destinataire
     "firstName": "Jean",
     "lastName": "Dupont",
     "status": "Monsieur",
@@ -82,29 +87,29 @@ Content-Type: application/json
     "email": "jean.dupont@email.com",
     "phone": "01 23 45 67 89"
   },
-  "profile": {
+  "profile": {                           // Coordonnées de l'expéditeur (profil utilisateur)
     "firstName": "Alice",
     "lastName": "Martin",
-    "company": "InnoTech",
+    "company": "InnoTech",            // Facultatif
     "address": "42 Avenue du Code",
     "postalCode": "75002",
     "city": "Paris",
     "email": "alice.martin@example.com",
     "phone": "06 01 02 03 04"
   },
-  "data": {
+  "data": {                              // Champs personnalisés (formulaires dynamiques)
     "position": "Développeur Full-Stack",
     "company": "TechCorp",
     "experience": "3",
     "motivation": "Passion pour l'innovation..."
   },
-  "prompt": "Rédige une lettre professionnelle de type \"motivation\"..."
+  "prompt": "Rédige une lettre professionnelle de type \"motivation\"..." // Prompt brut optionnel
 }
 ```
 
 ### API Response Format
 
-```typescript
+```json
 {
   "content": "Generated letter content as a string by ChatGPT"
 }
@@ -115,7 +120,8 @@ The server processes this data with ChatGPT to generate a professional, personal
 ### Debugging
 
 The app includes console logging to help debug the API integration:
-- Request data sent to server
-- Server response status
-- Generated content received
-- Error details if generation fails
+
+* Request data sent to server
+* Server response status
+* Generated content received
+* Error details if generation fails

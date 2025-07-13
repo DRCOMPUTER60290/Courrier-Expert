@@ -141,7 +141,14 @@ export default function CreateLetterScreen() {
     setGenerationError(null);
 
     try {
-      const generatedContent = await generateLetter(type || 'motivation', recipient, profile, formData);
+      const generatedContent = await generateLetter(
+        type || 'motivation',
+        recipient,
+        profile,
+        formData.subject || '',
+        formData.body || '',
+        formData
+      );
 
       const newLetter = {
         id: Date.now().toString(),
