@@ -17,7 +17,7 @@ import { ArrowLeft, Share2, Download, Mail, Printer } from 'lucide-react-native'
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 import * as MailComposer from 'expo-mail-composer';
-import { generatePdf, htmlForPrint } from '@/utils/plainPdf';
+import { generatePdf, htmlFromLetter } from '@/utils/plainPdf';
 
 export default function LetterPreviewScreen() {
   // 1. Récupère l'ID de la lettre depuis l'URL
@@ -29,30 +29,28 @@ export default function LetterPreviewScreen() {
 
   // 2. Cherche la lettre dans le contexte
   const letter = letters.find(l => l.id === letterId);
-
   const formattedDate = letter
-    ? new Date(letter.createdAt).toLocaleDateString('fr-FR')
+    ? new Date(letter.createdAt).toLocaleDateString('fr-FR', {
+        day: 'numeric', month: 'long', year: 'numeric'
+      })
     : '';
 
   if (!letter) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <Text style={[styles.errorText, { color: colors.error }]}>
-          Courrier non trouvé
-        </Text>
+      <View style={[styles.container, { backgroundColor: colors.background }]}> 
+        <Text style={[styles.errorText, { color: colors.error }]}> 
+          Courrier non trouvé 
+        </Text> 
       </View>
     );
   }
 
-  // 4. Partage (Share API web / expo-sharing)
+  // 3. Handlers for share, download, email, print...
   const shareFile = useCallback(
     async (uri: string) => {
       if (Platform.OS === 'web') {
         if (navigator.share) {
-          await navigator.share({
-            title: letter.title,
-            url: uri,
-          });
+          await navigator.share({ title: letter.title, url: uri });
         } else {
           const link = document.createElement('a');
           link.href = uri;
@@ -77,7 +75,6 @@ export default function LetterPreviewScreen() {
     }
   };
 
-  // 5. Télécharger (même logique que partager sur web)
   const handleDownload = async () => {
     try {
       const uri = await generatePdf(letter);
@@ -96,7 +93,6 @@ export default function LetterPreviewScreen() {
     }
   };
 
-  // 6. Email (expo-mail-composer)
   const handleEmail = async () => {
     try {
       const isAvailable = await MailComposer.isAvailableAsync();
@@ -116,13 +112,12 @@ export default function LetterPreviewScreen() {
     }
   };
 
-  // 7. Imprimer (window.print / expo-print)
   const handlePrint = async () => {
     try {
       if (Platform.OS === 'web') {
         window.print();
       } else {
-        const html = htmlForPrint(letter);
+        const html = htmlFromLetter(letter);
         await Print.printAsync({ html });
       }
     } catch {
@@ -130,10 +125,9 @@ export default function LetterPreviewScreen() {
     }
   };
 
-  // 8. Rendu de l'écran
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* En-tête avec le bouton retour */}
+    <View style={[styles.container, { backgroundColor: colors.background }]}> 
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={[styles.backButton, { backgroundColor: colors.surface }]}
@@ -141,12 +135,12 @@ export default function LetterPreviewScreen() {
         >
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>
-          Aperçu du courrier
+        <Text style={[styles.title, { color: colors.text }]}> 
+          Aperçu du courrier 
         </Text>
       </View>
 
-      {/* Contenu de la lettre */}
+      {/* Letter preview */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View
           style={[
@@ -154,14 +148,79 @@ export default function LetterPreviewScreen() {
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
-          <Text style={[styles.dateText, { color: colors.text, marginBottom: 16 }]}>
-            {profile.city}, le {formattedDate}
-          </Text>
-          <Text style={[styles.bodyText, { color: colors.text }]}>\n{letter.content}\n</Text>
+          {/* Letter header: sender, date, recipient */}
+          <View style={styles.letterHeader}>
+            {/* Sender info */}
+            <View style={styles.senderInfo}>
+              <Text style={[styles.senderText, { color: colors.text }]}> 
+                {profile.firstName} {profile.lastName} 
+              </Text>
+              <Text style={[styles.senderText, { color: colors.text }]}> 
+                {profile.address} 
+              </Text>
+              <Text style={[styles.senderText, { color: colors.text }]}> 
+                {profile.postalCode} {profile.city} 
+              </Text>
+            </View>
+
+            {/* Date / location */}
+            <View style={styles.dateLocation}>
+              <Text style={[styles. dateText, { color: colors.text }]}> 
+                {profile.city}, le {formattedDate} 
+              </Text>
+            </View>
+          </View>
+
+          {/* Recipient info */}
+          <View style={styles.recipientInfo}>
+            <Text style={[styles.recipientText, { color: colors.text }]}> 
+              {letter.recipient.status || ''} {letter.recipient.firstName} {letter.recipient.lastName} 
+            </Text>
+            <Text style={[styles.recipientText, { color: colors.text }]}> 
+              {letter.recipient.address} 
+            </Text>
+            <Text style={[styles.recipientText, { color: colors.text }]}> 
+              {letter.recipient.postalCode} {letter.recipient.city} 
+            </Text>
+            {letter.recipient.phone ? (
+              <Text style={[styles.recipientText, { color: colors.text }]}> 
+                Tél : {letter.recipient.phone} 
+              </Text>
+            ) : null}
+            {letter.recipient.email ? (
+              <Text style={[styles.recipientText, { color: colors.text }]}> 
+                Email : {letter.recipient.email} 
+              </Text>
+            ) : null}
+          </View>
+
+          {/* Subject */}
+          <View style={styles.subjectLine}>
+            <Text style={[styles.subjectText, { color: colors.text }]}> 
+              Objet : {letter.title} 
+            </Text>
+          </View>
+
+          {/* Body */}
+          <View style={styles.letterBody}>
+            <Text style={[styles.bodyText, { color: colors.text }]}> 
+              {letter.content} 
+            </Text>
+          </View>
+
+          {/* Signature */}
+          <View style={styles.signature}>
+            <Text style={[styles.signatureText, { color: colors.text }]}> 
+              Cordialement, 
+            </Text>
+            <Text style={[styles.signatureText, { color: colors.text }]}> 
+              {profile.firstName} {profile.lastName} 
+            </Text>
+          </View>
         </View>
       </ScrollView>
 
-      {/* Barre d'actions */}
+      {/* Action bar */}
       <View
         style={[
           styles.actionBar,
