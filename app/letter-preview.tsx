@@ -30,6 +30,10 @@ export default function LetterPreviewScreen() {
   // 2. Cherche la lettre dans le contexte
   const letter = letters.find(l => l.id === letterId);
 
+  const formattedDate = letter
+    ? new Date(letter.createdAt).toLocaleDateString('fr-FR')
+    : '';
+
   if (!letter) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -150,6 +154,9 @@ export default function LetterPreviewScreen() {
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
+          <Text style={[styles.dateText, { color: colors.text, marginBottom: 16 }]}>
+            {profile.city}, le {formattedDate}
+          </Text>
           <Text style={[styles.bodyText, { color: colors.text }]}>\n{letter.content}\n</Text>
         </View>
       </ScrollView>

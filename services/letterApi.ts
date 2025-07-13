@@ -18,7 +18,8 @@ function buildPrompt(
   profile: UserProfile,
   subject: string,
   body: string,
-  data: Record<string, any>
+  data: Record<string, any>,
+  currentDate: string
 ): string {
   const recipientInfo = `${
     recipient.status ? recipient.status + ' ' : ''
@@ -34,9 +35,12 @@ function buildPrompt(
     .map(([key, value]) => `${key}: ${value}`)
     .join(', ');
 
+  const headerLine = `${profile.city}, le ${currentDate}`;
+
   return (
     'Tu es un assistant qui rédige des lettres officielles au format administratif français. ' +
     "Les coordonnées de l'expéditeur doivent être placées en haut du courrier avant celles du destinataire. " +
+    `Le contenu de la lettre doit commencer par "${headerLine}". ` +
     `Type: ${type}. Objet: ${subject}. Corps: ${body}. ` +
     `Expéditeur: ${senderInfo}, ${address}. ${contact}. ` +
     `Destinataire: ${recipientInfo}. Informations supplémentaires: ${details}.`
@@ -49,10 +53,20 @@ export async function generateLetter(
   profile: UserProfile,
   subject: string,
   body: string,
-  data: Record<string, any>
+  data: Record<string, any>,
+  currentDate: string
 ): Promise<string> {
-  const prompt = buildPrompt(type, recipient, profile, subject, body, data);
-  console.log('Envoi des données au serveur:', { type, recipient, profile, subject, body, data, prompt });
+  const prompt = buildPrompt(type, recipient, profile, subject, body, data, currentDate);
+  console.log('Envoi des données au serveur:', {
+    type,
+    recipient,
+    profile,
+    subject,
+    body,
+    data,
+    currentDate,
+    prompt,
+  });
 
   const maxRetries = 3;
   let attempt = 0;
@@ -64,7 +78,7 @@ export async function generateLetter(
     response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type, recipient, profile, subject, body, data, prompt }),
+      body: JSON.stringify({ type, recipient, profile, subject, body, data, prompt, currentDate }),
     });
 
     console.log('Réponse du serveur:', response.status, response.statusText);
