@@ -54,7 +54,13 @@ After rebuilding the native project (`npx expo prebuild && npx expo run:ios` or 
 
 ## Letter generation API
 
-Letters are generated using a remote AI service whose base URL is defined by the `BACKEND_URL` environment variable. The app sends **raw form data** to the endpoint `/api/generate-letter`. The server uses ChatGPT to generate professional, personalized letter content based on the letter type, recipient information, and form data.
+Letters are generated using a remote AI service whose base URL is defined by the `BACKEND_URL` environment variable. The API prompt now starts with:
+
+```
+Tu es un assistant qui rédige des lettres officielles au format administratif français
+```
+
+The app sends structured data to `/api/generate-letter` which the server turns into a detailed prompt including the letter type, recipient, subject, body and sender profile.
 
 ### API Requirements
 
@@ -64,7 +70,9 @@ Letters are generated using a remote AI service whose base URL is defined by the
 
 ### API Request Format
 
-The app now sends structured data instead of a pre-generated prompt:
+The app now sends structured data instead of a pre-generated prompt. The backend
+expects the sender profile, an optional subject and body, plus any additional
+form data:
 
 ```typescript
 POST $BACKEND_URL/api/generate-letter
@@ -72,6 +80,8 @@ Content-Type: application/json
 
 {
   "type": "motivation", // Letter type
+  "subject": "Objet du courrier",
+  "body": "Texte libre saisi par l'utilisateur",
   "recipient": {
     "firstName": "Jean",
     "lastName": "Dupont",
@@ -81,6 +91,15 @@ Content-Type: application/json
     "city": "Paris",
     "email": "jean.dupont@email.com",
     "phone": "01 23 45 67 89"
+  },
+  "profile": {
+    "firstName": "Alice",
+    "lastName": "Martin",
+    "address": "5 rue des Lilas",
+    "postalCode": "75002",
+    "city": "Paris",
+    "phone": "01 02 03 04 05",
+    "email": "alice@example.com"
   },
   "data": {
     "position": "Développeur Full-Stack",
