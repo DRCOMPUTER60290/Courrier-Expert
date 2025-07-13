@@ -20,10 +20,11 @@ Courrier-Expert is a React Native application built with **Expo Router** for gen
 
    The app can then be opened in Expo Go or a simulator.
 
-3. Create an `.env` file at the project root and define the backend URL used during development:
+3. Copy `.env.example` to `.env` and update the backend URL for your environment:
 
    ```bash
-   BACKEND_URL=https://assistant-backend-yrbx.onrender.com
+   cp .env.example .env
+   # then edit BACKEND_URL inside .env if needed
    ```
 
    For production builds, set `BACKEND_URL` to the appropriate server URL in your deployment environment.
