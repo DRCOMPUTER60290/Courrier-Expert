@@ -150,7 +150,11 @@ export default function LetterPreviewScreen() {
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
-          <Text style={[styles.bodyText, { color: colors.text }]}>\n{letter.content}\n</Text>
+          <Text style={[styles.bodyText, { color: colors.text }]}>
+            {'\n'}
+            {letter.content}
+            {'\n'}
+          </Text>
         </View>
       </ScrollView>
 
