@@ -17,7 +17,7 @@ import { ArrowLeft, Share2, Download, Mail, Printer } from 'lucide-react-native'
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 import * as MailComposer from 'expo-mail-composer';
-import { generatePdf, htmlFromLetter } from '@/utils/plainPdf';
+import { generatePdf, htmlForPrint } from '@/utils/plainPdf';
 
 export default function LetterPreviewScreen() {
   // 1. Récupère l'ID de la lettre depuis l'URL
@@ -117,7 +117,7 @@ export default function LetterPreviewScreen() {
       if (Platform.OS === 'web') {
         window.print();
       } else {
-        const html = htmlFromLetter(letter);
+        const html = htmlForPrint(letter);
         await Print.printAsync({ html });
       }
     } catch {
@@ -148,58 +148,7 @@ export default function LetterPreviewScreen() {
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
-          {/* Letter header: sender, date, recipient */}
-          <View style={styles.letterHeader}>
-            {/* Sender info */}
-            <View style={styles.senderInfo}>
-              <Text style={[styles.senderText, { color: colors.text }]}> 
-                {profile.firstName} {profile.lastName} 
-              </Text>
-              <Text style={[styles.senderText, { color: colors.text }]}> 
-                {profile.address} 
-              </Text>
-              <Text style={[styles.senderText, { color: colors.text }]}> 
-                {profile.postalCode} {profile.city} 
-              </Text>
-            </View>
 
-            {/* Date / location */}
-            <View style={styles.dateLocation}>
-              <Text style={[styles. dateText, { color: colors.text }]}> 
-                {profile.city}, le {formattedDate} 
-              </Text>
-            </View>
-          </View>
-
-          {/* Recipient info */}
-          <View style={styles.recipientInfo}>
-            <Text style={[styles.recipientText, { color: colors.text }]}> 
-              {letter.recipient.status || ''} {letter.recipient.firstName} {letter.recipient.lastName} 
-            </Text>
-            <Text style={[styles.recipientText, { color: colors.text }]}> 
-              {letter.recipient.address} 
-            </Text>
-            <Text style={[styles.recipientText, { color: colors.text }]}> 
-              {letter.recipient.postalCode} {letter.recipient.city} 
-            </Text>
-            {letter.recipient.phone ? (
-              <Text style={[styles.recipientText, { color: colors.text }]}> 
-                Tél : {letter.recipient.phone} 
-              </Text>
-            ) : null}
-            {letter.recipient.email ? (
-              <Text style={[styles.recipientText, { color: colors.text }]}> 
-                Email : {letter.recipient.email} 
-              </Text>
-            ) : null}
-          </View>
-
-          {/* Subject */}
-          <View style={styles.subjectLine}>
-            <Text style={[styles.subjectText, { color: colors.text }]}> 
-              Objet : {letter.title} 
-            </Text>
-          </View>
 
           {/* Body */}
           <View style={styles.letterBody}>
@@ -208,15 +157,7 @@ export default function LetterPreviewScreen() {
             </Text>
           </View>
 
-          {/* Signature */}
-          <View style={styles.signature}>
-            <Text style={[styles.signatureText, { color: colors.text }]}> 
-              Cordialement, 
-            </Text>
-            <Text style={[styles.signatureText, { color: colors.text }]}> 
-              {profile.firstName} {profile.lastName} 
-            </Text>
-          </View>
+
         </View>
       </ScrollView>
 
