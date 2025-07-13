@@ -20,6 +20,14 @@ Courrier-Expert is a React Native application built with **Expo Router** for gen
 
    The app can then be opened in Expo Go or a simulator.
 
+3. Create an `.env` file at the project root and define the backend URL used during development:
+
+   ```bash
+   BACKEND_URL=https://assistant-backend-yrbx.onrender.com
+   ```
+
+   For production builds, set `BACKEND_URL` to the appropriate server URL in your deployment environment.
+
 ### Using React Native DevTools
 
 To enable the React Native DevTools, add the following to `app.json` under the `expo` key and rebuild:
@@ -46,7 +54,7 @@ After rebuilding the native project (`npx expo prebuild && npx expo run:ios` or 
 
 ## Letter generation API
 
-Letters are generated using a remote AI service hosted at `https://assistant-backend-yrbx.onrender.com`. The app sends **raw form data** to the endpoint `/api/generate-letter`. The server uses ChatGPT to generate professional, personalized letter content based on the letter type, recipient information, and form data.
+Letters are generated using a remote AI service whose base URL is defined by the `BACKEND_URL` environment variable. The app sends **raw form data** to the endpoint `/api/generate-letter`. The server uses ChatGPT to generate professional, personalized letter content based on the letter type, recipient information, and form data.
 
 ### API Requirements
 
@@ -59,7 +67,7 @@ Letters are generated using a remote AI service hosted at `https://assistant-bac
 The app now sends structured data instead of a pre-generated prompt:
 
 ```typescript
-POST https://assistant-backend-yrbx.onrender.com/api/generate-letter
+POST $BACKEND_URL/api/generate-letter
 Content-Type: application/json
 
 {

@@ -1,10 +1,12 @@
 // services/letterApi.ts
 
-import { UserProfile } from '@/contexts/UserContext';
 import { Alert } from 'react-native';
+import { UserProfile } from '@/contexts/UserContext';
+import { BACKEND_URL } from '@/config';
 
-const API_URL = 'https://assistant-backend-yrbx.onrender.com/api/generate-letter';
+const API_URL = `${BACKEND_URL}/api/generate-letter`;
 
+// Petite fonction utilitaire pour patienter
 function wait(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -15,8 +17,12 @@ function buildPrompt(
   profile: UserProfile,
   data: Record<string, any>
 ): string {
-  const recipientInfo = `${recipient.status ? recipient.status + ' ' : ''}${recipient.firstName} ${recipient.lastName}`.trim();
-  const senderInfo = `${profile.firstName} ${profile.lastName}${profile.company ? `, ${profile.company}` : ''}`.trim();
+  const recipientInfo = `${
+    recipient.status ? recipient.status + ' ' : ''
+  }${recipient.firstName} ${recipient.lastName}`.trim();
+  const senderInfo = `${
+    profile.firstName
+  } ${profile.lastName}${profile.company ? `, ${profile.company}` : ''}`.trim();
   const details = Object.entries(data)
     .map(([key, value]) => `${key}: ${value}`)
     .join(', ');
@@ -34,9 +40,10 @@ export async function generateLetter(
 
   const maxRetries = 3;
   let attempt = 0;
-  let delay = 1000;
+  let delay = 1000;  // en millisecondes
   let response: Response | null = null;
 
+  // On retente tant que le serveur renvoie 503 et que l'on n'a pas dépassé maxRetries
   while (attempt <= maxRetries) {
     response = await fetch(API_URL, {
       method: 'POST',
@@ -47,14 +54,17 @@ export async function generateLetter(
     console.log('Réponse du serveur:', response.status, response.statusText);
 
     if (response.status !== 503) {
+      // tout autre code HTTP → on sort de la boucle
       break;
     }
 
     if (attempt < maxRetries) {
+      // attente exponentielle avant la prochaine tentative
       await wait(delay);
       attempt += 1;
       delay *= 2;
     } else {
+      // on a épuisé les tentatives
       Alert.alert(
         'Serveur indisponible',
         'Le serveur semble occupé ou en cours de redémarrage. Merci de réessayer dans quelques instants.'
