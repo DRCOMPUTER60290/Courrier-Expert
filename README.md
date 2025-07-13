@@ -64,25 +64,20 @@ The app sends structured data to `/api/generate-letter` which the server turns i
 
 ### API Requirements
 
-- **Internet connection required**: The app requires an active internet connection to generate letters
-- **No offline mode**: All letter generation is handled by the remote server using AI
-- **Error handling**: The app provides clear feedback when generation fails due to network issues or server errors
+* **Internet connection required**: The app requires an active internet connection to generate letters.
+* **No offline mode**: All letter generation is handled by the remote server using AI.
+* **Error handling**: The app provides clear feedback when generation fails due to network issues or server errors.
 
 ### API Request Format
 
-The app now sends structured data instead of a pre-generated prompt. The backend
-expects the sender profile, an optional subject and body, plus any additional
-form data:
+The client sends the following JSON payload in the `POST` body to the endpoint `${BACKEND_URL}/api/generate-letter`:
 
-```typescript
-POST $BACKEND_URL/api/generate-letter
-Content-Type: application/json
-
+```json
 {
-  "type": "motivation", // Letter type
-  "subject": "Objet du courrier",
-  "body": "Texte libre saisi par l'utilisateur",
-  "recipient": {
+  "type": "motivation",                // Letter type identifier
+  "subject": "Objet du courrier",      // Objet de la lettre (facultatif)
+  "body": "Texte libre saisi par l'utilisateur", // Contenu principal (facultatif)
+  "recipient": {                         // Coordonnées du destinataire
     "firstName": "Jean",
     "lastName": "Dupont",
     "status": "Monsieur",
@@ -92,27 +87,29 @@ Content-Type: application/json
     "email": "jean.dupont@email.com",
     "phone": "01 23 45 67 89"
   },
-  "profile": {
+  "profile": {                           // Coordonnées de l'expéditeur (profil utilisateur)
     "firstName": "Alice",
     "lastName": "Martin",
-    "address": "5 rue des Lilas",
+    "company": "InnoTech",            // Facultatif
+    "address": "42 Avenue du Code",
     "postalCode": "75002",
     "city": "Paris",
-    "phone": "01 02 03 04 05",
-    "email": "alice@example.com"
+    "email": "alice.martin@example.com",
+    "phone": "06 01 02 03 04"
   },
-  "data": {
+  "data": {                              // Champs personnalisés (formulaires dynamiques)
     "position": "Développeur Full-Stack",
     "company": "TechCorp",
     "experience": "3",
     "motivation": "Passion pour l'innovation..."
-  }
+  },
+  "prompt": "Rédige une lettre professionnelle de type \"motivation\"..." // Prompt brut optionnel
 }
 ```
 
 ### API Response Format
 
-```typescript
+```json
 {
   "content": "Generated letter content as a string by ChatGPT"
 }
@@ -123,7 +120,8 @@ The server processes this data with ChatGPT to generate a professional, personal
 ### Debugging
 
 The app includes console logging to help debug the API integration:
-- Request data sent to server
-- Server response status
-- Generated content received
-- Error details if generation fails
+
+* Request data sent to server
+* Server response status
+* Generated content received
+* Error details if generation fails
