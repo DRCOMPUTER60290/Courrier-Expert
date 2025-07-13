@@ -2,6 +2,7 @@
 
 import { Alert } from 'react-native';
 import { UserProfile } from '@/contexts/UserContext';
+import { Recipient } from '@/contexts/LetterContext';
 import { BACKEND_URL } from '@/config';
 
 const API_URL = `${BACKEND_URL}/api/generate-letter`;
@@ -13,7 +14,7 @@ function wait(ms: number) {
 
 function buildPrompt(
   type: string,
-  recipient: any,
+  recipient: Recipient,
   profile: UserProfile,
   subject: string,
   body: string,
@@ -41,7 +42,7 @@ function buildPrompt(
 
 export async function generateLetter(
   type: string,
-  recipient: any,
+  recipient: Recipient,
   profile: UserProfile,
   subject: string,
   body: string,
