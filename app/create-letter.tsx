@@ -140,6 +140,8 @@ export default function CreateLetterScreen() {
     setIsGenerating(true);
     setGenerationError(null);
 
+    const currentDate = new Date().toLocaleDateString('fr-FR');
+
     try {
       const generatedContent = await generateLetter(
         type || 'motivation',
@@ -147,7 +149,8 @@ export default function CreateLetterScreen() {
         profile,
         formData.subject || '',
         formData.body || '',
-        formData
+        formData,
+        currentDate
       );
 
       const newLetter = {
