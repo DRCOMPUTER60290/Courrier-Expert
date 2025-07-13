@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useLetters } from '@/contexts/LetterContext';
+import { useLetters, Recipient } from '@/contexts/LetterContext';
 import { useUser } from '@/contexts/UserContext';
 import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, FileText, Send, Loader, Wifi, WifiOff } from 'lucide-react-native';
 import DatePicker from '@/components/DatePicker';
@@ -75,7 +75,7 @@ export default function CreateLetterScreen() {
   const router = useRouter();
 
   const [formData, setFormData] = useState<Record<string, string>>({});
-  const [recipient, setRecipient] = useState({
+  const [recipient, setRecipient] = useState<Recipient>({
     firstName: '',
     lastName: '',
     status: '',
@@ -108,7 +108,7 @@ export default function CreateLetterScreen() {
     }
   };
 
-  const handleRecipientChange = (key: string, value: string) => {
+  const handleRecipientChange = (key: keyof Recipient, value: string) => {
     setRecipient(prev => ({ ...prev, [key]: value }));
     // Clear error when user starts typing
     if (generationError) {
@@ -235,7 +235,7 @@ export default function CreateLetterScreen() {
     );
   };
 
-  const renderRecipientField = (key: string, label: string, placeholder: string, icon: React.ComponentType<any>) => (
+  const renderRecipientField = (key: keyof Recipient, label: string, placeholder: string, icon: React.ComponentType<any>) => (
     <View style={styles.fieldContainer}>
       <View style={styles.fieldHeader}>
         {React.createElement(icon, { size: 16, color: colors.textSecondary })}
@@ -243,7 +243,7 @@ export default function CreateLetterScreen() {
       </View>
       <TextInput
         style={[styles.fieldInput, { color: colors.text, borderColor: colors.border }]}
-        value={recipient[key as keyof typeof recipient]}
+        value={recipient[key]}
         onChangeText={(value) => handleRecipientChange(key, value)}
         placeholder={placeholder}
         placeholderTextColor={colors.textSecondary}

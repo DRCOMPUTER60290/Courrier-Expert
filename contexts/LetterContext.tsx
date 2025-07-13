@@ -1,20 +1,22 @@
 import React, { createContext, useContext, useState } from 'react';
 
+export interface Recipient {
+  firstName: string;
+  lastName: string;
+  status: string;
+  address: string;
+  postalCode: string;
+  city: string;
+  email: string;
+  phone: string;
+}
+
 export interface Letter {
   id: string;
   type: string;
   title: string;
   content: string;
-  recipient: {
-    firstName: string;
-    lastName: string;
-    status: string;
-    address: string;
-    postalCode: string;
-    city: string;
-    email: string;
-    phone: string;
-  };
+  recipient: Recipient;
   data: Record<string, any>;
   createdAt: Date;
 }
