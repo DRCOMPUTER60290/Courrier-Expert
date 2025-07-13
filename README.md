@@ -64,7 +64,7 @@ Letters are generated using a remote AI service whose base URL is defined by the
 
 ### API Request Format
 
-The app now sends structured data instead of a pre-generated prompt:
+The app sends structured form values along with a pre-built `prompt` string:
 
 ```typescript
 POST $BACKEND_URL/api/generate-letter
@@ -82,12 +82,23 @@ Content-Type: application/json
     "email": "jean.dupont@email.com",
     "phone": "01 23 45 67 89"
   },
+  "profile": {
+    "firstName": "Alice",
+    "lastName": "Martin",
+    "company": "InnoTech",
+    "address": "42 Avenue du Code",
+    "postalCode": "75002",
+    "city": "Paris",
+    "email": "alice.martin@example.com",
+    "phone": "06 01 02 03 04"
+  },
   "data": {
     "position": "Développeur Full-Stack",
     "company": "TechCorp",
     "experience": "3",
     "motivation": "Passion pour l'innovation..."
-  }
+  },
+  "prompt": "Rédige une lettre professionnelle de type \"motivation\"..."
 }
 ```
 
