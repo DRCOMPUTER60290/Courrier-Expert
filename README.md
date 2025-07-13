@@ -42,7 +42,7 @@ After rebuilding the native project (`npx expo prebuild && npx expo run:ios` or 
 ## Major screens
 
 * **Home** – choose a letter type and view app statistics.
-* **Create Letter** – fill in recipient information and form fields; uses `DatePicker` and `CitySelector` components.
+* **Create Letter** – fill in recipient information and form fields; uses `DatePicker` and `CitySelector` components. The last recipient entered is reused automatically for convenience.
 * **Letter Preview** – view the generated letter and share, download, email or print it.
 * **History** – list of previously created letters with actions to share, download, email or delete.
 * **Profile** – manage user information such as name, company, address and avatar.
