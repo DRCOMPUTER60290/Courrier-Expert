@@ -105,5 +105,7 @@ export async function generateLetter(
     throw new Error('Réponse invalide du serveur: contenu manquant');
   }
 
-  return result.content as string;
+  const raw = result.content as string;
+  const content = raw.replace(/\\n/g, '\n');
+  return content;
 }
