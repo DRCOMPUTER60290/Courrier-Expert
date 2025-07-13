@@ -33,10 +33,13 @@ function buildPrompt(
     .map(([key, value]) => `${key}: ${value}`)
     .join(', ');
 
-  return `Tu es un assistant qui rédige des lettres officielles au format administratif français. ` +
+  return (
+    'Tu es un assistant qui rédige des lettres officielles au format administratif français. ' +
+    "Les coordonnées de l'expéditeur doivent être placées en haut du courrier avant celles du destinataire. " +
     `Type: ${type}. Objet: ${subject}. Corps: ${body}. ` +
     `Expéditeur: ${senderInfo}, ${address}. ${contact}. ` +
-    `Destinataire: ${recipientInfo}. Informations supplémentaires: ${details}.`;
+    `Destinataire: ${recipientInfo}. Informations supplémentaires: ${details}.`
+  );
 }
 
 export async function generateLetter(
