@@ -1,6 +1,7 @@
 // services/letterApi.ts
 
 import { UserProfile } from '@/contexts/UserContext';
+import { BACKEND_URL } from '@/config';
 
 function buildPrompt(
   type: string,
@@ -26,7 +27,7 @@ export async function generateLetter(
   console.log('Envoi des données au serveur:', { type, recipient, profile, data, prompt });
 
   const response = await fetch(
-    'https://assistant-backend-yrbx.onrender.com/api/generate-letter',
+    `${BACKEND_URL}/api/generate-letter`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
