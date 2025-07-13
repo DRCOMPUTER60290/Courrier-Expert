@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert 
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLetters } from '@/contexts/LetterContext';
+import { useUser } from '@/contexts/UserContext';
 import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, FileText, Send, Loader, Wifi, WifiOff } from 'lucide-react-native';
 import DatePicker from '@/components/DatePicker';
 import CitySelector from '@/components/CitySelector';
@@ -70,6 +71,7 @@ export default function CreateLetterScreen() {
   const { type } = useLocalSearchParams<{ type: string }>();
   const { colors } = useTheme();
   const { addLetter } = useLetters();
+  const { profile } = useUser();
   const router = useRouter();
 
   const [formData, setFormData] = useState<Record<string, string>>({});
@@ -139,7 +141,7 @@ export default function CreateLetterScreen() {
     setGenerationError(null);
 
     try {
-      const generatedContent = await generateLetter(type || 'motivation', recipient, formData);
+      const generatedContent = await generateLetter(type || 'motivation', recipient, profile, formData);
 
       const newLetter = {
         id: Date.now().toString(),
