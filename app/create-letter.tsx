@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -8,6 +8,7 @@ import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, FileText, Send, Loader,
 import DatePicker from '@/components/DatePicker';
 import CitySelector from '@/components/CitySelector';
 import { generateLetter } from '@/services/letterApi';
+import { loadLastRecipient, saveLastRecipient } from '@/utils/recipientStorage';
 
 interface FormField {
   key: string;
@@ -88,6 +89,14 @@ export default function CreateLetterScreen() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
 
+  useEffect(() => {
+    loadLastRecipient().then(saved => {
+      if (saved) {
+        setRecipient(saved);
+      }
+    });
+  }, []);
+
   const fields = letterTypeFields[type || 'motivation'] || [];
   const typeLabels: Record<string, string> = {
     motivation: 'Lettre de motivation',
@@ -164,6 +173,7 @@ export default function CreateLetterScreen() {
       };
 
       addLetter(newLetter);
+      saveLastRecipient(recipient);
 
       Alert.alert(
         'Succès',
