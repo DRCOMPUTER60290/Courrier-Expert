@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Modal } from 'react-native';
 import { MapPin, ChevronDown } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
-import { getCitiesByPostalCode } from '@/utils/postalCodes';
+import { fetchCitiesByPostalCode } from '@/services/postalApi';
 
 interface CitySelectorProps {
   postalCode: string;
@@ -26,20 +26,24 @@ export default function CitySelector({
   const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
-    if (postalCode && postalCode.length >= 2) {
-      const availableCities = getCitiesByPostalCode(postalCode);
-      setCities(availableCities);
-      setFilteredCities(availableCities);
-      
-      // Reset selected city if it's not in the new list
-      if (selectedCity && !availableCities.includes(selectedCity)) {
+    async function loadCities() {
+      if (postalCode && postalCode.length >= 2) {
+        const availableCities = await fetchCitiesByPostalCode(postalCode);
+        setCities(availableCities);
+        setFilteredCities(availableCities);
+
+        // Reset selected city if it's not in the new list
+        if (selectedCity && !availableCities.includes(selectedCity)) {
+          onCityChange('');
+        }
+      } else {
+        setCities([]);
+        setFilteredCities([]);
         onCityChange('');
       }
-    } else {
-      setCities([]);
-      setFilteredCities([]);
-      onCityChange('');
     }
+
+    loadCities();
   }, [postalCode]);
 
   useEffect(() => {
