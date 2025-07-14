@@ -1,5 +1,5 @@
 // app/letter-preview.tsx
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -8,12 +8,13 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
+  TextInput,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLetters } from '@/contexts/LetterContext';
 import { useUser } from '@/contexts/UserContext';
-import { ArrowLeft, Share2, Download, Mail, Printer } from 'lucide-react-native';
+import { ArrowLeft, Share2, Download, Mail, Printer, Edit, Save, X } from 'lucide-react-native';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 import * as MailComposer from 'expo-mail-composer';
@@ -23,9 +24,13 @@ export default function LetterPreviewScreen() {
   // 1. Récupère l'ID de la lettre depuis l'URL
   const { letterId } = useLocalSearchParams<{ letterId: string }>();
   const { colors } = useTheme();
-  const { letters } = useLetters();
+  const { letters, updateLetter } = useLetters();
   const { profile } = useUser();
   const router = useRouter();
+
+  // États pour l'édition
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState('');
 
   // 2. Cherche la lettre dans le contexte
   const letter = letters.find(l => l.id === letterId);
@@ -125,6 +130,31 @@ export default function LetterPreviewScreen() {
     }
   };
 
+  // Handlers pour l'édition
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditedContent(letter.content);
+  };
+
+  const handleSave = async () => {
+    try {
+      if (updateLetter) {
+        updateLetter(letter.id, { ...letter, content: editedContent });
+        setIsEditing(false);
+        Alert.alert('Succès', 'Lettre modifiée avec succès');
+      } else {
+        Alert.alert('Erreur', 'Fonction de mise à jour non disponible');
+      }
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible de sauvegarder les modifications');
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditedContent(letter.content);
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}> 
       {/* Header */}
@@ -136,7 +166,7 @@ export default function LetterPreviewScreen() {
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}> 
-          Aperçu du courrier 
+          {isEditing ? 'Modifier le courrier' : 'Aperçu du courrier'}
         </Text>
       </View>
 
@@ -148,16 +178,31 @@ export default function LetterPreviewScreen() {
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
-
-
           {/* Body */}
           <View style={styles.letterBody}>
-            <Text style={[styles.bodyText, { color: colors.text }]}> 
-              {letter.content} 
-            </Text>
+            {isEditing ? (
+              <TextInput
+                style={[
+                  styles.editInput,
+                  { 
+                    color: colors.text, 
+                    borderColor: colors.border,
+                    backgroundColor: colors.background
+                  }
+                ]}
+                value={editedContent}
+                onChangeText={setEditedContent}
+                multiline
+                textAlignVertical="top"
+                placeholder="Contenu de la lettre..."
+                placeholderTextColor={colors.textSecondary}
+              />
+            ) : (
+              <Text style={[styles.bodyText, { color: colors.text }]}> 
+                {letter.content} 
+              </Text>
+            )}
           </View>
-
-
         </View>
       </ScrollView>
 
@@ -168,30 +213,56 @@ export default function LetterPreviewScreen() {
           { backgroundColor: colors.surface, borderTopColor: colors.border },
         ]}
       >
+        {/* Bouton Modifier/Sauvegarder */}
         <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: colors.accent }]}
-          onPress={handleShare}
+          style={[
+            styles.actionButton, 
+            { backgroundColor: isEditing ? colors.primary : colors.accent }
+          ]}
+          onPress={isEditing ? handleSave : handleEdit}
         >
-          <Share2 size={20} color="#fff" />
+          {isEditing ? <Save size={20} color="#fff" /> : <Edit size={20} color="#fff" />}
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: colors.primary }]}
-          onPress={handleDownload}
-        >
-          <Download size={20} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: colors.warning }]}
-          onPress={handleEmail}
-        >
-          <Mail size={20} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: colors.secondary }]}
-          onPress={handlePrint}
-        >
-          <Printer size={20} color="#fff" />
-        </TouchableOpacity>
+
+        {/* Bouton Annuler (visible uniquement en mode édition) */}
+        {isEditing && (
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: colors.error }]}
+            onPress={handleCancel}
+          >
+            <X size={20} color="#fff" />
+          </TouchableOpacity>
+        )}
+
+        {/* Boutons d'actions (désactivés en mode édition) */}
+        {!isEditing && (
+          <>
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: colors.accent }]}
+              onPress={handleShare}
+            >
+              <Share2 size={20} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: colors.primary }]}
+              onPress={handleDownload}
+            >
+              <Download size={20} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: colors.warning }]}
+              onPress={handleEmail}
+            >
+              <Mail size={20} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: colors.secondary }]}
+              onPress={handlePrint}
+            >
+              <Printer size={20} color="#fff" />
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </View>
   );
@@ -236,6 +307,16 @@ const styles = StyleSheet.create({
   subjectText: { fontSize: 14, fontFamily: 'Inter-Regular' },
   letterBody: { marginBottom: 32 },
   bodyText: { fontSize: 16, fontFamily: 'Inter-Regular', lineHeight: 24 },
+  editInput: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    lineHeight: 24,
+    minHeight: 300,
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 16,
+    textAlignVertical: 'top',
+  },
   signature: { alignItems: 'flex-end' },
   signatureText: { fontSize: 16, fontFamily: 'Inter-SemiBold' },
   actionBar: {
@@ -257,5 +338,51 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     textAlign: 'center',
     marginTop: 100,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  editButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#fff',
+    marginLeft: 8,
+  },
+  editButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  saveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    flex: 1,
+    marginRight: 8,
+  },
+  saveButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#fff',
+    marginLeft: 8,
+  },
+  cancelButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    flex: 1,
+    marginLeft: 8,
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#fff',
+    marginLeft: 8,
   },
 });

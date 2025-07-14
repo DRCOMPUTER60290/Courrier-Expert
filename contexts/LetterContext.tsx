@@ -24,6 +24,7 @@ export interface Letter {
 interface LetterContextType {
   letters: Letter[];
   addLetter: (letter: Letter) => void;
+  updateLetter: (id: string, updatedLetter: Letter) => void;
   deleteLetter: (id: string) => void;
   getStatistics: () => {
     totalLetters: number;
@@ -40,6 +41,12 @@ export function LetterProvider({ children }: { children: React.ReactNode }) {
 
   const addLetter = (letter: Letter) => {
     setLetters(prev => [letter, ...prev]);
+  };
+
+  const updateLetter = (id: string, updatedLetter: Letter) => {
+    setLetters(prev => prev.map(letter => 
+      letter.id === id ? updatedLetter : letter
+    ));
   };
 
   const deleteLetter = (id: string) => {
@@ -72,7 +79,7 @@ export function LetterProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <LetterContext.Provider value={{ letters, addLetter, deleteLetter, getStatistics }}>
+    <LetterContext.Provider value={{ letters, addLetter, updateLetter, deleteLetter, getStatistics }}>
       {children}
     </LetterContext.Provider>
   );
