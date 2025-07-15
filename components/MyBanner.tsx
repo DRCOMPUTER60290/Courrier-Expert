@@ -9,7 +9,7 @@ import {
 // Pendant le dev, utilise l’ID de test
 const BANNER_AD_UNIT = __DEV__
   ? TestIds.BANNER
-  : 'a-app-pub-3734567410194819/3849723391'; // ton Ad Unit ID production
+  : 'ca-app-pub-3734567410194819/3849723391'; // ton Ad Unit ID production
 
 export default function MyBanner() {
   return (
