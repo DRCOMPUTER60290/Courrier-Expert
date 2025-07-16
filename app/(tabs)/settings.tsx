@@ -1,5 +1,16 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  Share,
+  Linking,
+  Platform,
+} from 'react-native';
+import * as MailComposer from 'expo-mail-composer';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useRouter } from 'expo-router';
 import { 
@@ -35,8 +46,47 @@ export default function SettingsScreen() {
     router.push(`/legal/${slug}`);
   };
 
-  const handleAction = (action: string) => {
-    Alert.alert('Action', `${action} sélectionné`);
+  const APP_URL =
+    'https://play.google.com/store/apps/details?id=com.drcomputer60290.courrierexpert';
+
+  const handleRateApp = async () => {
+    const url = APP_URL;
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Erreur', "Impossible d'ouvrir la page de notation");
+      }
+    } catch {
+      Alert.alert('Erreur', "Impossible d'ouvrir la page de notation");
+    }
+  };
+
+  const handleShareApp = async () => {
+    try {
+      await Share.share({
+        message: `Découvrez Courrier-Expert : ${APP_URL}`,
+      });
+    } catch {
+      Alert.alert('Erreur', "Impossible de partager l'application");
+    }
+  };
+
+  const handleSupport = async () => {
+    try {
+      const isAvailable = await MailComposer.isAvailableAsync();
+      if (!isAvailable) {
+        Alert.alert('Email', 'Client email non disponible');
+        return;
+      }
+      await MailComposer.composeAsync({
+        recipients: ['support@courrier-expert.com'],
+        subject: 'Support Courrier-Expert',
+      });
+    } catch {
+      Alert.alert('Erreur', "Impossible d'ouvrir le client mail");
+    }
   };
 
   const renderSetting = (
@@ -104,21 +154,21 @@ export default function SettingsScreen() {
             'Noter l\'application',
             'Partagez votre expérience',
             Star,
-            () => handleAction('Noter l\'application')
+            handleRateApp
           )}
           
           {renderSetting(
             'Partager l\'application',
             'Recommander à vos contacts',
             Share2,
-            () => handleAction('Partager l\'application')
+            handleShareApp
           )}
           
           {renderSetting(
             'Support',
             'Contactez notre équipe',
             MessageCircle,
-            () => handleAction('Support')
+            handleSupport
           )}
         </View>
 
