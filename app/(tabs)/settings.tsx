@@ -81,7 +81,7 @@ export default function SettingsScreen() {
         return;
       }
       await MailComposer.composeAsync({
-        recipients: ['support@courrier-expert.com'],
+        recipients: ['webmaster@drcomputer60290.fr'],
         subject: 'Support Courrier-Expert',
       });
     } catch {
