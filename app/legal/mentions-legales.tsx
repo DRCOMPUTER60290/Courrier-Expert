@@ -6,10 +6,8 @@ export default function MentionsLegales() {
     <LegalPage title="Mentions légales">
       {`Société éditrice : drcomputer60290 - Benjamin Albert
 Entreprise individuelle immatriculée au RCS sous le n° 804 581 437
-Adresse e-mail : contact@drcomputer60290.fr
+Adresse e-mail : webmaster@drcompurter60290.fr
 Directeur de la publication : Benjamin Albert
-
-Hébergement : OVH SAS – 2 rue Kellermann, 59100 Roubaix – France
 
 L'application Courrier-Expert et l'ensemble de ses contenus sont la propriété exclusive de leur éditeur. Toute reproduction ou représentation, totale ou partielle, est interdite sans autorisation préalable.
 
