@@ -126,11 +126,11 @@ export default function HomeScreen() {
         {letterTypes.map(renderLetterType)}
       </View>
 
-      {/* Espace pour scroll */}
-      <View style={{ height: 80 }} />
-
       {/* Bannière AdMob */}
       <MyBanner />
+
+      {/* Espace pour scroll */}
+      <View style={{ height: 80 }} />
     </ScrollView>
   );
 }
