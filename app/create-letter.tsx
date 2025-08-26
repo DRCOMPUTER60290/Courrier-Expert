@@ -66,6 +66,49 @@ const letterTypeFields: Record<string, FormField[]> = {
     { key: 'period', label: 'Période concernée', type: 'text', placeholder: '01/01/2024 - 31/12/2024' },
     { key: 'additional', label: 'Informations supplémentaires', type: 'multiline', placeholder: 'Détails additionnels...' },
   ],
+  preavis: [
+    { key: 'propertyAddress', label: 'Adresse du logement', type: 'text', placeholder: 'Adresse complète', required: true },
+    { key: 'leaseStart', label: 'Date de début de bail', type: 'date', placeholder: 'JJ/MM/AAAA', required: true },
+    { key: 'departureDate', label: 'Date de départ souhaitée', type: 'date', placeholder: 'JJ/MM/AAAA', required: true },
+    { key: 'noticePeriod', label: 'Durée du préavis', type: 'text', placeholder: '3 mois', required: true },
+  ],
+  resiliation: [
+    { key: 'service', label: 'Fournisseur / Service', type: 'text', placeholder: 'Nom du service', required: true },
+    { key: 'contractNumber', label: 'Numéro de contrat', type: 'text', placeholder: 'CTR-2024-001', required: true },
+    { key: 'terminationDate', label: 'Date souhaitée de résiliation', type: 'date', placeholder: 'JJ/MM/AAAA', required: true },
+    { key: 'reason', label: 'Motif', type: 'multiline', placeholder: 'Raison de la résiliation' },
+  ],
+  contestation: [
+    { key: 'reference', label: 'Référence contestée', type: 'text', placeholder: 'Facture, PV...', required: true },
+    { key: 'reason', label: 'Motif de contestation', type: 'multiline', placeholder: 'Expliquez le motif', required: true },
+    { key: 'incidentDate', label: "Date de l'incident", type: 'date', placeholder: 'JJ/MM/AAAA', required: true },
+    { key: 'incidentPlace', label: "Lieu de l'incident", type: 'text', placeholder: 'Ville ou adresse', required: true },
+    { key: 'evidence', label: 'Pièces justificatives', type: 'multiline', placeholder: 'Références ou description' },
+  ],
+  'delai-paiement': [
+    { key: 'invoiceNumber', label: 'Numéro de facture', type: 'text', placeholder: 'FAC-2024-001', required: true },
+    { key: 'amount', label: 'Montant dû (€)', type: 'number', placeholder: '1500', required: true },
+    { key: 'currentDueDate', label: "Date d'échéance actuelle", type: 'date', placeholder: 'JJ/MM/AAAA', required: true },
+    { key: 'desiredDueDate', label: "Date d'échéance souhaitée", type: 'date', placeholder: 'JJ/MM/AAAA', required: true },
+    { key: 'justification', label: 'Justification', type: 'multiline', placeholder: 'Expliquez votre demande', required: true },
+  ],
+  entretien: [
+    { key: 'subject', label: "Objet de l'entretien", type: 'text', placeholder: 'Motif du rendez-vous', required: true },
+    { key: 'desiredDate', label: 'Date souhaitée', type: 'date', placeholder: 'JJ/MM/AAAA', required: true },
+    { key: 'desiredTime', label: 'Heure souhaitée', type: 'text', placeholder: '14:00', required: true },
+    { key: 'context', label: 'Contexte / motif', type: 'multiline', placeholder: 'Détails supplémentaires' },
+  ],
+  information: [
+    { key: 'topic', label: "Sujet de l'information", type: 'text', placeholder: 'Objet', required: true },
+    { key: 'details', label: 'Détails / message', type: 'multiline', placeholder: 'Votre message...', required: true },
+    { key: 'effectiveDate', label: "Date d'effet", type: 'date', placeholder: 'JJ/MM/AAAA' },
+  ],
+  'mise-en-demeure': [
+    { key: 'subject', label: 'Objet du litige', type: 'text', placeholder: 'Conflit', required: true },
+    { key: 'amount', label: 'Montant ou obligation', type: 'text', placeholder: 'Montant dû ou obligation', required: true },
+    { key: 'contractRef', label: 'Référence de contrat / dossier', type: 'text', placeholder: 'REF-2024-001', required: true },
+    { key: 'deadline', label: 'Délai avant action', type: 'text', placeholder: '15 jours', required: true },
+  ],
 };
 
 export default function CreateLetterScreen() {
@@ -107,6 +150,13 @@ export default function CreateLetterScreen() {
     remerciement: 'Lettre de remerciement',
     administrative: 'Courrier administratif',
     attestation: 'Demande d\'attestation',
+    preavis: 'Préavis de départ',
+    resiliation: "Résiliation d'abonnement",
+    contestation: 'Lettre de contestation',
+    'delai-paiement': 'Demande de délai de paiement',
+    entretien: "Demande d'entretien",
+    information: "Lettre d'information",
+    'mise-en-demeure': 'Mise en demeure',
   };
 
   const handleInputChange = (key: string, value: string) => {

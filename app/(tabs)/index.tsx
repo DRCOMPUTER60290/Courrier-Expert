@@ -26,6 +26,13 @@ import {
   Users,
   FileCheck,
   User,
+  House,
+  CircleX,
+  TriangleAlert,
+  Hourglass,
+  CalendarClock,
+  Info,
+  Gavel,
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MyBanner from '@/components/MyBanner';
@@ -39,6 +46,13 @@ const letterTypes = [
   { id: 'remerciement', title: 'Remerciement',       description: 'Relation client',     icon: Heart,      color: '#ec4899' },
   { id: 'administrative', title: 'Administrative',   description: 'Démarche officielle', icon: Building,   color: '#64748b' },
   { id: 'attestation', title: 'Attestation',         description: 'Document officiel',   icon: FileCheck,  color: '#06b6d4' },
+  { id: 'preavis',      title: 'Préavis de départ',  description: 'Quitter un logement', icon: House,      color: '#0ea5e9' },
+  { id: 'resiliation',  title: 'Résiliation',        description: 'Fin d\'abonnement',   icon: CircleX,   color: '#dc2626' },
+  { id: 'contestation', title: 'Contestation',       description: 'Contester une décision', icon: TriangleAlert, color: '#f97316' },
+  { id: 'delai-paiement', title: 'Délai de paiement', description: 'Demande de report', icon: Hourglass, color: '#eab308' },
+  { id: 'entretien',    title: "Demande d'entretien", description: 'Fixer un rendez-vous', icon: CalendarClock, color: '#16a34a' },
+  { id: 'information',  title: 'Lettre d\'information', description: 'Communiquer une nouvelle', icon: Info, color: '#0284c7' },
+  { id: 'mise-en-demeure', title: 'Mise en demeure', description: 'Ultimatum juridique', icon: Gavel, color: '#7f1d1d' },
 ];
 
 export default function HomeScreen() {
