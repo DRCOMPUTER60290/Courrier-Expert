@@ -9,6 +9,7 @@ import DatePicker from '@/components/DatePicker';
 import CitySelector from '@/components/CitySelector';
 import { generateLetter } from '@/services/letterApi';
 import { loadLastRecipient, saveLastRecipient } from '@/utils/recipientStorage';
+import { saveDraft, loadDraft, clearDraft } from '@/utils/draftStorage';
 
 interface FormField {
   key: string;
@@ -133,9 +134,18 @@ export default function CreateLetterScreen() {
   const [generationError, setGenerationError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadLastRecipient().then(saved => {
-      if (saved) {
-        setRecipient(saved);
+    loadDraft().then(draft => {
+      if (draft) {
+        setFormData(draft.formData || {});
+        if (draft.recipient) {
+          setRecipient(draft.recipient);
+        }
+      } else {
+        loadLastRecipient().then(saved => {
+          if (saved) {
+            setRecipient(saved);
+          }
+        });
       }
     });
   }, []);
@@ -160,7 +170,11 @@ export default function CreateLetterScreen() {
   };
 
   const handleInputChange = (key: string, value: string) => {
-    setFormData(prev => ({ ...prev, [key]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [key]: value };
+      saveDraft(updated, recipient);
+      return updated;
+    });
     // Clear error when user starts typing
     if (generationError) {
       setGenerationError(null);
@@ -168,7 +182,11 @@ export default function CreateLetterScreen() {
   };
 
   const handleRecipientChange = (key: keyof Recipient, value: string) => {
-    setRecipient(prev => ({ ...prev, [key]: value }));
+    setRecipient(prev => {
+      const updated = { ...prev, [key]: value };
+      saveDraft(formData, updated);
+      return updated;
+    });
     // Clear error when user starts typing
     if (generationError) {
       setGenerationError(null);
@@ -245,6 +263,7 @@ export default function CreateLetterScreen() {
 
       addLetter(newLetter);
       saveLastRecipient(recipient);
+      await clearDraft();
 
       Alert.alert(
         'Succès',
