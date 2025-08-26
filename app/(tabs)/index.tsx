@@ -26,7 +26,6 @@ import {
   Briefcase,
   Users,
   FileCheck,
-  User,
   House,
   CircleX,
   TriangleAlert,
@@ -50,12 +49,12 @@ const letterTypes = [
   { id: 'administrative', title: 'Administrative',   description: 'Démarche officielle', icon: Building,   color: '#64748b' },
   { id: 'attestation', title: 'Attestation',         description: 'Document officiel',   icon: FileCheck,  color: '#06b6d4' },
   { id: 'preavis',      title: 'Préavis de départ',  description: 'Quitter un logement', icon: House,      color: '#0ea5e9' },
-  { id: 'resiliation',  title: 'Résiliation',        description: 'Fin d\'abonnement',   icon: CircleX,   color: '#dc2626' },
+  { id: 'resiliation',  title: 'Résiliation',        description: "Fin d'abonnement",    icon: CircleX,    color: '#dc2626' },
   { id: 'contestation', title: 'Contestation',       description: 'Contester une décision', icon: TriangleAlert, color: '#f97316' },
-  { id: 'delai-paiement', title: 'Délai de paiement', description: 'Demande de report', icon: Hourglass, color: '#eab308' },
+  { id: 'delai-paiement', title: 'Délai de paiement', description: 'Demande de report',  icon: Hourglass,  color: '#eab308' },
   { id: 'entretien',    title: "Demande d'entretien", description: 'Fixer un rendez-vous', icon: CalendarClock, color: '#16a34a' },
-  { id: 'information',  title: 'Lettre d\'information', description: 'Communiquer une nouvelle', icon: Info, color: '#0284c7' },
-  { id: 'mise-en-demeure', title: 'Mise en demeure', description: 'Ultimatum juridique', icon: Gavel, color: '#7f1d1d' },
+  { id: 'information',  title: "Lettre d'information", description: 'Communiquer une nouvelle', icon: Info, color: '#0284c7' },
+  { id: 'mise-en-demeure', title: 'Mise en demeure', description: 'Ultimatum juridique', icon: Gavel,      color: '#7f1d1d' },
 ];
 
 export default function HomeScreen() {
@@ -79,12 +78,12 @@ export default function HomeScreen() {
     router.push({ pathname: '/create-letter', params: { type } });
   };
 
-  // Autorise 2+ couleurs pour le dégradé (résout le conflit de types)
+  // Type simple pour éviter tout souci de parsing: un tableau de strings
   const renderStatCard = (
     title: string,
     value: string | number,
     IconComponent: React.ComponentType<any>,
-    gradient: [string, string, ...string[]]
+    gradient: string[]
   ) => (
     <View key={title} style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <LinearGradient colors={gradient} style={styles.statGradient}>
@@ -97,7 +96,6 @@ export default function HomeScreen() {
     </View>
   );
 
-  // Gestion des favoris (persistés)
   const toggleFavorite = (id: string) => {
     setFavorites(prev => {
       const updated = prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id];
@@ -106,8 +104,156 @@ export default function HomeScreen() {
     });
   };
 
-  // Carte type de lettre : accessibilité + étoile Favori
   const renderLetterType = (item: typeof letterTypes[0]) => {
     const isFavorite = favorites.includes(item.id);
     return (
       <TouchableOpacity
+        key={item.id}
+        style={[styles.letterCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+        onPress={() => handleLetterTypePress(item.id)}
+        activeOpacity={0.7}
+        accessible
+        accessibilityRole="button"
+        accessibilityLabel={`Créer ${item.title}`}
+        accessibilityHint={`Ouvre le formulaire pour ${item.description.toLowerCase()}`}
+      >
+        <View style={[styles.letterIconContainer, { backgroundColor: item.color + '15' }]}>
+          <item.icon size={28} color={item.color} />
+        </View>
+
+        <View style={styles.letterContent}>
+          <Text style={[styles.letterTitle, { color: colors.text }]}>{item.title}</Text>
+          <Text style={[styles.letterDescription, { color: colors.textSecondary }]}>{item.description}</Text>
+        </View>
+
+        <TouchableOpacity
+          onPress={() => toggleFavorite(item.id)}
+          style={styles.favoriteButton}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel={isFavorite ? `Retirer ${item.title} des favoris` : `Ajouter ${item.title} aux favoris`}
+        >
+          <Star
+            size={24}
+            color={isFavorite ? colors.warning : colors.textSecondary}
+            fill={isFavorite ? colors.warning : 'none'}
+          />
+        </TouchableOpacity>
+      </TouchableOpacity>
+    );
+  };
+
+  const filteredTypes = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    const types = letterTypes.filter(
+      t =>
+        t.title.toLowerCase().includes(query) ||
+        t.description.toLowerCase().includes(query)
+    );
+    return {
+      favorites: types.filter(t => favorites.includes(t.id)),
+      others: types.filter(t => !favorites.includes(t.id)),
+    };
+  }, [searchQuery, favorites]);
+
+  return (
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* En-tête utilisateur */}
+      <View style={styles.header}>
+        <View>
+          <Text style={[styles.greeting, { color: colors.textSecondary }]}>Bonjour</Text>
+          <Text style={[styles.userName, { color: colors.text }]}>
+            {profile.firstName || 'Utilisateur'}
+          </Text>
+        </View>
+        <View style={[styles.logo, { backgroundColor: colors.primary }]}>
+          {profile.photo ? (
+            <Image source={{ uri: profile.photo }} style={styles.profileImage} />
+          ) : (
+            <Mail size={24} color="#fff" />
+          )}
+        </View>
+      </View>
+
+      {/* Slogan */}
+      <Text style={[styles.tagline, { color: colors.textSecondary }]}>
+        Votre courrier, prêt en un instant
+      </Text>
+
+      {/* Statistiques */}
+      <View style={styles.statsContainer}>
+        {renderStatCard('Courriers ce mois', stats.thisMonth, Calendar, [colors.primary, colors.primary])}
+        {renderStatCard('Total créés', stats.totalLetters, FileText, [colors.accent, '#34d399'])}
+        {renderStatCard('Type populaire', stats.mostUsedType, TrendingUp, [colors.warning, '#fbbf24'])}
+        {renderStatCard('Taux partage', `${stats.shareRate}%`, Share2, [colors.secondary, '#94a3b8'])}
+      </View>
+
+      {/* Recherche */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={[
+            styles.searchInput,
+            { color: colors.text, backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+          placeholder="Rechercher un type..."
+          placeholderTextColor={colors.textSecondary}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
+      {/* Favoris */}
+      {filteredTypes.favorites.length > 0 && (
+        <>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Favoris</Text>
+          </View>
+          <View style={styles.letterGrid}>
+            {filteredTypes.favorites.map(renderLetterType)}
+          </View>
+        </>
+      )}
+
+      {/* Autres types */}
+      <View style={styles.sectionHeader}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Types de courriers</Text>
+      </View>
+      <View style={styles.letterGrid}>
+        {filteredTypes.others.map(renderLetterType)}
+      </View>
+
+      {/* Bannière AdMob */}
+      <MyBanner />
+
+      {/* Espace pour scroll */}
+      <View style={{ height: 80 }} />
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container:   { flex: 1, paddingTop: 50 },
+  header:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 8 },
+  greeting:    { fontSize: 16, fontFamily: 'Inter-Regular' },
+  userName:    { fontSize: 24, fontFamily: 'Inter-Bold' },
+  logo:        { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
+  profileImage:{ width: '100%', height: '100%', borderRadius: 24 },
+  tagline:     { fontSize: 16, fontFamily: 'Inter-Medium', textAlign: 'center', marginBottom: 30, fontStyle: 'italic' },
+  statsContainer: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20, gap: 12, marginBottom: 30 },
+  statCard:    { flex: 1, minWidth: '47%', flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 12, borderWidth: 1 },
+  statGradient:{ width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  statContent: { flex: 1 },
+  statValue:   { fontSize: 18, fontFamily: 'Inter-Bold' },
+  statTitle:   { fontSize: 12, fontFamily: 'Inter-Medium', marginTop: 2 },
+  sectionHeader:{ paddingHorizontal: 20, marginBottom: 16 },
+  sectionTitle:{ fontSize: 20, fontFamily: 'Inter-Bold' },
+  letterGrid:  { paddingHorizontal: 20, gap: 12 },
+  letterCard:  { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 12, borderWidth: 1, marginBottom: 8 },
+  letterIconContainer:{ width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', marginRight: 16 },
+  letterContent:{ flex: 1 },
+  letterTitle: { fontSize: 16, fontFamily: 'Inter-SemiBold', marginBottom: 4 },
+  letterDescription:{ fontSize: 14, fontFamily: 'Inter-Regular' },
+  searchContainer:{ paddingHorizontal: 20, marginBottom: 16 },
+  searchInput:{ borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, fontFamily: 'Inter-Regular' },
+  favoriteButton:{ padding: 4 },
+});
