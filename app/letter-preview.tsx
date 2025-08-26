@@ -9,6 +9,7 @@ import {
   Alert,
   Platform,
   TextInput,
+  Image,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -73,7 +74,7 @@ export default function LetterPreviewScreen() {
 
   const handleShare = async () => {
     try {
-      const uri = await generatePdf(letter);
+      const uri = await generatePdf(letter, profile.signature);
       await shareFile(uri);
     } catch {
       Alert.alert('Erreur', 'Impossible de partager le courrier');
@@ -82,7 +83,7 @@ export default function LetterPreviewScreen() {
 
   const handleDownload = async () => {
     try {
-      const uri = await generatePdf(letter);
+      const uri = await generatePdf(letter, profile.signature);
       if (Platform.OS === 'web') {
         const link = document.createElement('a');
         link.href = uri;
@@ -105,7 +106,7 @@ export default function LetterPreviewScreen() {
         Alert.alert('Email', 'Client email non disponible');
         return;
       }
-      const uri = await generatePdf(letter);
+      const uri = await generatePdf(letter, profile.signature);
       await MailComposer.composeAsync({
         recipients: [letter.recipient.email].filter(Boolean),
         subject: letter.title,
@@ -122,7 +123,7 @@ export default function LetterPreviewScreen() {
       if (Platform.OS === 'web') {
         window.print();
       } else {
-        const html = htmlForPrint(letter);
+        const html = htmlForPrint(letter, profile.signature);
         await Print.printAsync({ html });
       }
     } catch {
@@ -199,7 +200,17 @@ export default function LetterPreviewScreen() {
               />
             ) : (
               <Text style={[styles.bodyText, { color: colors.text }]}> 
-                {letter.content} 
+                {letter.content}
+              </Text>
+            )}
+            {profile.signature ? (
+              <Image
+                source={{ uri: profile.signature }}
+                style={styles.signatureImage}
+              />
+            ) : (
+              <Text style={[styles.signatureText, { color: colors.text }]}>
+                {profile.firstName} {profile.lastName}
               </Text>
             )}
           </View>
@@ -319,6 +330,7 @@ const styles = StyleSheet.create({
   },
   signature: { alignItems: 'flex-end' },
   signatureText: { fontSize: 16, fontFamily: 'Inter-SemiBold' },
+  signatureImage: { width: 200, height: 100, alignSelf: 'flex-end', marginTop: 16 },
   actionBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',

@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Image, Modal } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@/contexts/UserContext';
 import { User, CreditCard as Edit3, Save, Camera, Mail, Phone, MapPin, Building } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import CitySelector from '@/components/CitySelector';
 import MyBanner from '@/components/MyBanner';
-import { LinearGradient } from 'expo-linear-gradient';
+import SignatureCanvas from 'react-native-signature-canvas';
 
 export default function ProfileScreen() {
   const { colors } = useTheme();
   const { profile, updateProfile } = useUser();
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState(profile);
+  const [showSignaturePad, setShowSignaturePad] = useState(false);
 
   const handleSave = () => {
     updateProfile(editedProfile);
@@ -45,6 +46,19 @@ export default function ProfileScreen() {
       setEditedProfile(newProfile);
       updateProfile(newProfile);
     }
+  };
+
+  const handleSignatureSave = (signature: string) => {
+    const newProfile = { ...editedProfile, signature };
+    setEditedProfile(newProfile);
+    updateProfile(newProfile);
+    setShowSignaturePad(false);
+  };
+
+  const handleSignatureRemove = () => {
+    const newProfile = { ...editedProfile, signature: undefined };
+    setEditedProfile(newProfile);
+    updateProfile(newProfile);
   };
 
   const renderField = (label: string, value: string, key: keyof typeof profile, icon: React.ComponentType<any>, placeholder: string) => (
@@ -163,6 +177,39 @@ export default function ProfileScreen() {
           )}
         </View>
 
+        <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Signature</Text>
+          {editedProfile.signature ? (
+            <>
+              <Image
+                source={{ uri: editedProfile.signature }}
+                style={styles.signaturePreview}
+              />
+              <View style={styles.signatureActions}>
+                <TouchableOpacity
+                  style={[styles.cancelButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  onPress={handleSignatureRemove}
+                >
+                  <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>Supprimer</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.saveButton, { backgroundColor: colors.accent }]}
+                  onPress={() => setShowSignaturePad(true)}
+                >
+                  <Text style={styles.saveButtonText}>Modifier</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <TouchableOpacity
+              style={[styles.saveButton, { backgroundColor: colors.accent }]}
+              onPress={() => setShowSignaturePad(true)}
+            >
+              <Text style={styles.saveButtonText}>Ajouter une signature</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
         {isEditing && (
           <View style={styles.actionButtons}>
             <TouchableOpacity
@@ -181,9 +228,24 @@ export default function ProfileScreen() {
         )}
 
         <View style={{ height: 80 }} />
-		
+
       </ScrollView>
-	    {/* Bannière AdMob */}
+      <Modal visible={showSignaturePad} animationType="slide">
+        <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+          <SignatureCanvas
+            onOK={handleSignatureSave}
+            onEmpty={() => setShowSignaturePad(false)}
+            backgroundColor="#ffffff"
+          />
+          <TouchableOpacity
+            style={{ position: 'absolute', top: 40, right: 20 }}
+            onPress={() => setShowSignaturePad(false)}
+          >
+            <Text style={{ color: '#000000' }}>Fermer</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+            {/* Bannière AdMob */}
       <MyBanner />
     </View>
   );
@@ -310,5 +372,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#ffffff',
+  },
+  signaturePreview: {
+    width: 200,
+    height: 100,
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  signatureActions: {
+    flexDirection: 'row',
+    gap: 12,
   },
 });
