@@ -1,12 +1,17 @@
-import { Tabs } from 'expo-router';
+import { Tabs, SplashScreen, usePathname, useRouter } from 'expo-router';
 import { Chrome as Home, History, User, Settings } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import React, { useEffect } from 'react';
-import { Slot, SplashScreen } from 'expo-router';
 import mobileAds from 'react-native-google-mobile-ads';
+import { Alert } from 'react-native';
+import { useUser } from '@/contexts/UserContext';
 
 export default function TabLayout() {
-	 useEffect(() => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { profile } = useUser();
+
+  useEffect(() => {
     // 1) Initialise la SDK AdMob dès que l'app démarre
     mobileAds()
       .initialize()
@@ -16,12 +21,34 @@ export default function TabLayout() {
         SplashScreen.hideAsync();
       });
   }, []);
-	
-	
-  const { theme, colors } = useTheme();
+
+  const isProfileComplete =
+    profile.firstName.trim() &&
+    profile.lastName.trim() &&
+    profile.email.trim() &&
+    profile.address.trim() &&
+    profile.postalCode.trim() &&
+    profile.city.trim() &&
+    profile.phone.trim();
+
+  useEffect(() => {
+    if (!isProfileComplete && pathname !== '/profile') {
+      router.navigate('/profile');
+    }
+  }, [isProfileComplete, pathname]);
+
+  const { colors } = useTheme();
+
+  const preventIfIncomplete = (e: any) => {
+    if (!isProfileComplete) {
+      e.preventDefault();
+      Alert.alert('Profil incomplet', 'Veuillez compléter votre profil avant de continuer.');
+      router.navigate('/profile');
+    }
+  };
 
   return (
-  
+
     <Tabs
       screenOptions={{
         headerShown: false,
@@ -49,6 +76,7 @@ export default function TabLayout() {
             <Home size={size} color={color} />
           ),
         }}
+        listeners={{ tabPress: preventIfIncomplete }}
       />
       <Tabs.Screen
         name="history"
@@ -58,6 +86,7 @@ export default function TabLayout() {
             <History size={size} color={color} />
           ),
         }}
+        listeners={{ tabPress: preventIfIncomplete }}
       />
       <Tabs.Screen
         name="profile"
@@ -76,6 +105,7 @@ export default function TabLayout() {
             <Settings size={size} color={color} />
           ),
         }}
+        listeners={{ tabPress: preventIfIncomplete }}
       />
     </Tabs>
 	
