@@ -163,6 +163,10 @@ export default function LetterPreviewScreen() {
         <TouchableOpacity
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={() => router.back()}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel="Retour"
+          accessibilityHint="Revenir à l'écran précédent"
         >
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
@@ -181,28 +185,31 @@ export default function LetterPreviewScreen() {
         >
           {/* Body */}
           <View style={styles.letterBody}>
-            {isEditing ? (
-              <TextInput
-                style={[
-                  styles.editInput,
-                  { 
-                    color: colors.text, 
-                    borderColor: colors.border,
-                    backgroundColor: colors.background
-                  }
-                ]}
-                value={editedContent}
-                onChangeText={setEditedContent}
-                multiline
-                textAlignVertical="top"
-                placeholder="Contenu de la lettre..."
-                placeholderTextColor={colors.textSecondary}
-              />
-            ) : (
-              <Text style={[styles.bodyText, { color: colors.text }]}> 
-                {letter.content}
-              </Text>
-            )}
+              {isEditing ? (
+                <TextInput
+                  style={[
+                    styles.editInput,
+                    {
+                      color: colors.text,
+                      borderColor: colors.border,
+                      backgroundColor: colors.background
+                    }
+                  ]}
+                  value={editedContent}
+                  onChangeText={setEditedContent}
+                  multiline
+                  textAlignVertical="top"
+                  placeholder="Contenu de la lettre..."
+                  placeholderTextColor={colors.textSecondary}
+                  accessible
+                  accessibilityLabel="Contenu du courrier"
+                  accessibilityHint="Modifiez le texte du courrier"
+                />
+              ) : (
+                <Text style={[styles.bodyText, { color: colors.text }]}>
+                  {letter.content}
+                </Text>
+              )}
             {profile.signature ? (
               <Image
                 source={{ uri: profile.signature }}
@@ -227,10 +234,14 @@ export default function LetterPreviewScreen() {
         {/* Bouton Modifier/Sauvegarder */}
         <TouchableOpacity
           style={[
-            styles.actionButton, 
+            styles.actionButton,
             { backgroundColor: isEditing ? colors.primary : colors.accent }
           ]}
           onPress={isEditing ? handleSave : handleEdit}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel={isEditing ? 'Enregistrer' : 'Modifier'}
+          accessibilityHint={isEditing ? 'Sauvegarde le courrier' : 'Passe en mode édition'}
         >
           {isEditing ? <Save size={20} color="#fff" /> : <Edit size={20} color="#fff" />}
         </TouchableOpacity>
@@ -240,6 +251,10 @@ export default function LetterPreviewScreen() {
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: colors.error }]}
             onPress={handleCancel}
+            accessible
+            accessibilityRole="button"
+            accessibilityLabel="Annuler"
+            accessibilityHint="Annule les modifications"
           >
             <X size={20} color="#fff" />
           </TouchableOpacity>
@@ -251,24 +266,40 @@ export default function LetterPreviewScreen() {
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.accent }]}
               onPress={handleShare}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Partager"
+              accessibilityHint="Partage le courrier"
             >
               <Share2 size={20} color="#fff" />
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.primary }]}
               onPress={handleDownload}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Télécharger"
+              accessibilityHint="Télécharge le courrier en PDF"
             >
               <Download size={20} color="#fff" />
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.warning }]}
               onPress={handleEmail}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Envoyer par email"
+              accessibilityHint="Ouvre le client mail"
             >
               <Mail size={20} color="#fff" />
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.secondary }]}
               onPress={handlePrint}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Imprimer"
+              accessibilityHint="Lance l'impression du courrier"
             >
               <Printer size={20} color="#fff" />
             </TouchableOpacity>

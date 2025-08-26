@@ -333,6 +333,9 @@ export default function CreateLetterScreen() {
           multiline={isMultiline}
           numberOfLines={isMultiline ? 4 : 1}
           keyboardType={field.type === 'number' ? 'numeric' : 'default'}
+          accessible
+          accessibilityLabel={field.label}
+          accessibilityHint={field.required ? 'Champ obligatoire' : undefined}
         />
       </View>
     );
@@ -352,6 +355,8 @@ export default function CreateLetterScreen() {
         placeholderTextColor={colors.textSecondary}
         keyboardType={key === 'postalCode' ? 'numeric' : 'default'}
         maxLength={key === 'postalCode' ? 5 : undefined}
+        accessible
+        accessibilityLabel={label}
       />
     </View>
   );
@@ -359,9 +364,13 @@ export default function CreateLetterScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.backButton, { backgroundColor: colors.surface }]}
           onPress={() => router.back()}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel="Retour"
+          accessibilityHint="Revenir à l'écran précédent"
         >
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
@@ -421,6 +430,12 @@ export default function CreateLetterScreen() {
           ]}
           onPress={handleGenerateLetter}
           disabled={isGenerating}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel={
+            isGenerating ? 'Génération du courrier en cours' : 'Générer le courrier'
+          }
+          accessibilityHint="Envoie les informations pour créer le courrier"
         >
           {isGenerating ? (
             <Loader size={24} color="#ffffff" />

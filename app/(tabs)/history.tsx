@@ -109,10 +109,14 @@ export default function HistoryScreen() {
 
   const renderLetter = (letter: any) => (
     <View key={letter.id} style={[styles.letterCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.letterContent}
         onPress={() => handleLetterPress(letter.id)}
         activeOpacity={0.7}
+        accessible
+        accessibilityRole="button"
+        accessibilityLabel={`Ouvrir le courrier ${letter.title}`}
+        accessibilityHint="Affiche les détails du courrier"
       >
         <View style={[styles.letterIcon, { backgroundColor: colors.primary + '15' }]}>
           <FileText size={24} color={colors.primary} />
@@ -132,27 +136,43 @@ export default function HistoryScreen() {
       </TouchableOpacity>
       
       <View style={styles.actionButtons}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: colors.accent + '15' }]}
           onPress={() => handleShare(letter)}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel="Partager"
+          accessibilityHint="Partage le courrier"
         >
           <Share2 size={18} color={colors.accent} />
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: colors.primary + '15' }]}
           onPress={() => handleDownload(letter)}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel="Télécharger"
+          accessibilityHint="Télécharge le courrier en PDF"
         >
           <Download size={18} color={colors.primary} />
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: colors.warning + '15' }]}
           onPress={() => handleEmail(letter)}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel="Envoyer par email"
+          accessibilityHint="Ouvre le client mail"
         >
           <Mail size={18} color={colors.warning} />
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: colors.error + '15' }]}
           onPress={() => handleDelete(letter)}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel="Supprimer"
+          accessibilityHint="Supprime le courrier"
         >
           <Trash2 size={18} color={colors.error} />
         </TouchableOpacity>

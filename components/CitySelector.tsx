@@ -73,6 +73,9 @@ export default function CitySelector({
     <TouchableOpacity
       style={[styles.cityItem, { borderBottomColor: colors.border }]}
       onPress={() => handleCitySelect(item)}
+      accessible
+      accessibilityRole="button"
+      accessibilityLabel={`Choisir ${item}`}
     >
       <Text style={[styles.cityText, { color: colors.text }]}>{item}</Text>
     </TouchableOpacity>
@@ -84,7 +87,7 @@ export default function CitySelector({
       <TouchableOpacity
         style={[
           styles.selector,
-          { 
+          {
             borderColor: colors.border,
             backgroundColor: cities.length > 0 ? colors.surface : colors.background,
             opacity: cities.length > 0 ? 1 : 0.5
@@ -92,6 +95,20 @@ export default function CitySelector({
         ]}
         onPress={openModal}
         disabled={cities.length === 0}
+        accessible
+        accessibilityRole="button"
+        accessibilityLabel={
+          selectedCity
+            ? `Ville sélectionnée ${selectedCity}. Appuyez pour changer`
+            : cities.length > 0
+              ? 'Sélectionner une ville'
+              : "Saisir d'abord le code postal"
+        }
+        accessibilityHint={
+          cities.length > 0
+            ? 'Ouvre la liste des villes disponibles'
+            : undefined
+        }
       >
         <MapPin size={20} color={colors.textSecondary} />
         <Text style={[
@@ -116,6 +133,9 @@ export default function CitySelector({
               <TouchableOpacity
                 style={[styles.closeButton, { backgroundColor: colors.surface }]}
                 onPress={() => setIsModalVisible(false)}
+                accessible
+                accessibilityRole="button"
+                accessibilityLabel="Fermer la sélection de ville"
               >
                 <Text style={[styles.closeButtonText, { color: colors.text }]}>✕</Text>
               </TouchableOpacity>
@@ -127,6 +147,9 @@ export default function CitySelector({
               placeholderTextColor={colors.textSecondary}
               value={searchText}
               onChangeText={setSearchText}
+              accessible
+              accessibilityLabel="Rechercher une ville"
+              accessibilityHint="Saisir le nom de la ville"
             />
 
             <FlatList
