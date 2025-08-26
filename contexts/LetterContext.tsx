@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { loadLetters, saveLetters } from '@/utils/letterStorage';
 
 export interface Recipient {
   firstName: string;
@@ -39,18 +40,34 @@ const LetterContext = createContext<LetterContextType | undefined>(undefined);
 export function LetterProvider({ children }: { children: React.ReactNode }) {
   const [letters, setLetters] = useState<Letter[]>([]);
 
+  useEffect(() => {
+    loadLetters().then(setLetters);
+  }, []);
+
   const addLetter = (letter: Letter) => {
-    setLetters(prev => [letter, ...prev]);
+    setLetters(prev => {
+      const updated = [letter, ...prev];
+      saveLetters(updated);
+      return updated;
+    });
   };
 
   const updateLetter = (id: string, updatedLetter: Letter) => {
-    setLetters(prev => prev.map(letter => 
-      letter.id === id ? updatedLetter : letter
-    ));
+    setLetters(prev => {
+      const updated = prev.map(letter =>
+        letter.id === id ? updatedLetter : letter
+      );
+      saveLetters(updated);
+      return updated;
+    });
   };
 
   const deleteLetter = (id: string) => {
-    setLetters(prev => prev.filter(letter => letter.id !== id));
+    setLetters(prev => {
+      const updated = prev.filter(letter => letter.id !== id);
+      saveLetters(updated);
+      return updated;
+    });
   };
 
   const getStatistics = () => {
