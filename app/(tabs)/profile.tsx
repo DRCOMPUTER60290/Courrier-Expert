@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Image, Modal } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@/contexts/UserContext';
-import { User, CreditCard as Edit3, Save, Camera, Mail, Phone, MapPin, Building } from 'lucide-react-native';
+import { User, Pencil, Save, Camera, Mail, Phone, MapPin, Building } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import CitySelector from '@/components/CitySelector';
 import MyBanner from '@/components/MyBanner';
@@ -92,9 +92,15 @@ export default function ProfileScreen() {
           onPress={isEditing ? handleSave : () => setIsEditing(true)}
         >
           {isEditing ? (
-            <Save size={20} color="#ffffff" />
+            <>
+              <Save size={20} color="#ffffff" />
+              <Text style={styles.editButtonText}>Enregistrer</Text>
+            </>
           ) : (
-            <Edit3 size={20} color="#ffffff" />
+            <>
+              <Pencil size={20} color="#ffffff" />
+              <Text style={styles.editButtonText}>Modifier</Text>
+            </>
           )}
         </TouchableOpacity>
       </View>
@@ -268,11 +274,18 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
   },
   editButton: {
-    width: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     height: 44,
     borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  editButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#ffffff',
   },
   content: {
     flex: 1,
