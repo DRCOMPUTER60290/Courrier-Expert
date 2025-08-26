@@ -15,7 +15,34 @@ export default function ProfileScreen() {
   const [editedProfile, setEditedProfile] = useState(profile);
   const [showSignaturePad, setShowSignaturePad] = useState(false);
 
+  const validateProfile = () => {
+    if (!editedProfile.firstName) {
+      Alert.alert('Erreur', 'Le prénom est obligatoire');
+      return false;
+    }
+    if (!editedProfile.lastName) {
+      Alert.alert('Erreur', 'Le nom est obligatoire');
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (editedProfile.email && !emailRegex.test(editedProfile.email)) {
+      Alert.alert('Erreur', "Veuillez entrer une adresse email valide (ex: nom@exemple.com)");
+      return false;
+    }
+
+    const phoneDigits = editedProfile.phone.replace(/\s/g, '');
+    const phoneRegex = /^\+?\d{10,15}$/;
+    if (editedProfile.phone && !phoneRegex.test(phoneDigits)) {
+      Alert.alert('Erreur', 'Veuillez entrer un numéro de téléphone valide (10 à 15 chiffres)');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSave = () => {
+    if (!validateProfile()) return;
     updateProfile(editedProfile);
     setIsEditing(false);
     Alert.alert('Succès', 'Profil mis à jour avec succès');
