@@ -52,6 +52,14 @@ export default function DatePicker({ value, onDateChange, placeholder = 'Sélect
       <TouchableOpacity
         style={[styles.dateButton, { borderColor: colors.border, backgroundColor: colors.surface }]}
         onPress={showDatePicker}
+        accessible
+        accessibilityRole="button"
+        accessibilityLabel={
+          value
+            ? `Changer la date${label ? ` ${label}` : ''}`
+            : `Sélectionner${label ? ` ${label}` : ' une date'}`
+        }
+        accessibilityHint="Ouvre le sélecteur de date"
       >
         <Calendar size={20} color={colors.textSecondary} />
         <Text style={[styles.dateText, { color: value ? colors.text : colors.textSecondary }]}>
@@ -68,7 +76,6 @@ export default function DatePicker({ value, onDateChange, placeholder = 'Sélect
         locale="fr_FR"
         confirmTextIOS="Confirmer"
         cancelTextIOS="Annuler"
-        headerTextIOS="Choisir une date"
       />
     </View>
   );

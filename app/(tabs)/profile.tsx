@@ -101,9 +101,11 @@ export default function ProfileScreen() {
           onChangeText={(text) => setEditedProfile(prev => ({ ...prev, [key]: text }))}
           placeholder={placeholder}
           placeholderTextColor={colors.textSecondary}
+          accessible
+          accessibilityLabel={label}
         />
       ) : (
-        <Text style={[styles.fieldValue, { color: colors.text }]}>
+        <Text style={[styles.fieldValue, { color: colors.text }]}> 
           {value || placeholder}
         </Text>
       )}
@@ -117,6 +119,10 @@ export default function ProfileScreen() {
         <TouchableOpacity
           style={[styles.editButton, { backgroundColor: isEditing ? colors.accent : colors.primary }]}
           onPress={isEditing ? handleSave : () => setIsEditing(true)}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel={isEditing ? 'Enregistrer le profil' : 'Modifier le profil'}
+          accessibilityHint={isEditing ? 'Sauvegarde les modifications du profil' : 'Permet de modifier les informations du profil'}
         >
           {isEditing ? (
             <>
@@ -141,9 +147,13 @@ export default function ProfileScreen() {
               <User size={32} color="#ffffff" />
             )}
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.cameraButton, { backgroundColor: colors.accent }]}
             onPress={pickImage}
+            accessible
+            accessibilityRole="button"
+            accessibilityLabel="Changer la photo de profil"
+            accessibilityHint="Ouvre la galerie pour sélectionner une photo"
           >
             <Camera size={16} color="#ffffff" />
           </TouchableOpacity>
@@ -183,6 +193,8 @@ export default function ProfileScreen() {
                 placeholderTextColor={colors.textSecondary}
                 keyboardType="numeric"
                 maxLength={5}
+                accessible
+                accessibilityLabel="Code postal"
               />
             ) : (
               <Text style={[styles.fieldValue, { color: colors.text }]}>
@@ -222,12 +234,18 @@ export default function ProfileScreen() {
                 <TouchableOpacity
                   style={[styles.cancelButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
                   onPress={handleSignatureRemove}
+                  accessible
+                  accessibilityRole="button"
+                  accessibilityLabel="Supprimer la signature"
                 >
                   <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>Supprimer</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.saveButton, { backgroundColor: colors.accent }]}
                   onPress={() => setShowSignaturePad(true)}
+                  accessible
+                  accessibilityRole="button"
+                  accessibilityLabel="Modifier la signature"
                 >
                   <Text style={styles.saveButtonText}>Modifier</Text>
                 </TouchableOpacity>
@@ -237,6 +255,9 @@ export default function ProfileScreen() {
             <TouchableOpacity
               style={[styles.saveButton, { backgroundColor: colors.accent }]}
               onPress={() => setShowSignaturePad(true)}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Ajouter une signature"
             >
               <Text style={styles.saveButtonText}>Ajouter une signature</Text>
             </TouchableOpacity>
@@ -248,12 +269,18 @@ export default function ProfileScreen() {
             <TouchableOpacity
               style={[styles.cancelButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
               onPress={handleCancel}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Annuler les modifications"
             >
               <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>Annuler</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.saveButton, { backgroundColor: colors.accent }]}
               onPress={handleSave}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Enregistrer les modifications"
             >
               <Text style={styles.saveButtonText}>Enregistrer</Text>
             </TouchableOpacity>
@@ -273,6 +300,9 @@ export default function ProfileScreen() {
           <TouchableOpacity
             style={{ position: 'absolute', top: 40, right: 20 }}
             onPress={() => setShowSignaturePad(false)}
+            accessible
+            accessibilityRole="button"
+            accessibilityLabel="Fermer"
           >
             <Text style={{ color: '#000000' }}>Fermer</Text>
           </TouchableOpacity>

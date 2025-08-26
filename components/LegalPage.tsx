@@ -19,6 +19,10 @@ export default function LegalPage({ title, children }: LegalPageProps) {
         <TouchableOpacity
           onPress={() => router.back()}
           style={[styles.backButton, { backgroundColor: colors.surface }]}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel="Retour"
+          accessibilityHint="Revenir à l'écran précédent"
         >
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>

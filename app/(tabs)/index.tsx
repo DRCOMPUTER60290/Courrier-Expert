@@ -70,7 +70,7 @@ export default function HomeScreen() {
     title: string,
     value: string | number,
     IconComponent: React.ComponentType<any>,
-    gradient: string[]
+    gradient: [string, string, ...string[]]
   ) => (
     <View key={title} style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <LinearGradient colors={gradient} style={styles.statGradient}>
@@ -89,6 +89,10 @@ export default function HomeScreen() {
       style={[styles.letterCard, { backgroundColor: colors.card, borderColor: colors.border }]}
       onPress={() => handleLetterTypePress(item.id)}
       activeOpacity={0.7}
+      accessible
+      accessibilityRole="button"
+      accessibilityLabel={`Créer ${item.title}`}
+      accessibilityHint={`Ouvre le formulaire pour ${item.description.toLowerCase()}`}
     >
       <View style={[styles.letterIconContainer, { backgroundColor: item.color + '15' }]}>
         <item.icon size={28} color={item.color} />

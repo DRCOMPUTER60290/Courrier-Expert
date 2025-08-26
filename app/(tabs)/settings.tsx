@@ -43,7 +43,7 @@ export default function SettingsScreen() {
   };
 
   const handleLegalPage = (slug: string) => {
-    router.push(`/legal/${slug}`);
+    router.push(`/legal/${slug}` as any);
   };
 
   const APP_URL =
@@ -100,6 +100,10 @@ export default function SettingsScreen() {
       style={[styles.settingItem, { backgroundColor: colors.card, borderColor: colors.border }]}
       onPress={onPress}
       activeOpacity={0.7}
+      accessible
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      accessibilityHint={subtitle}
     >
       <View style={[styles.settingIcon, { backgroundColor: colors.primary + '15' }]}>
         {React.createElement(icon, { size: 20, color: colors.primary })}
@@ -117,7 +121,7 @@ export default function SettingsScreen() {
       key={option.key}
       style={[
         styles.themeOption,
-        { 
+        {
           backgroundColor: colors.card,
           borderColor: theme === option.key ? colors.primary : colors.border,
           borderWidth: theme === option.key ? 2 : 1,
@@ -125,6 +129,10 @@ export default function SettingsScreen() {
       ]}
       onPress={() => handleThemeChange(option.key as any)}
       activeOpacity={0.7}
+      accessible
+      accessibilityRole="button"
+      accessibilityLabel={`Thème ${option.label}`}
+      accessibilityHint="Change le thème de l'application"
     >
       <View style={[styles.themeIcon, { backgroundColor: colors.primary + '15' }]}>
         <option.icon size={20} color={colors.primary} />
