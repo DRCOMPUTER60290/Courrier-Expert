@@ -26,7 +26,7 @@ export default function HistoryScreen() {
 
   const handleShare = async (letter: any) => {
     try {
-      const pdfUri = await generatePdf(letter);
+      const pdfUri = await generatePdf(letter, profile.signature);
       if (Platform.OS === 'web') {
         if (navigator.share) {
           await navigator.share({ title: letter.title, url: pdfUri });
@@ -48,7 +48,7 @@ export default function HistoryScreen() {
 
   const handleDownload = async (letter: any) => {
     try {
-      const pdfUri = await generatePdf(letter);
+      const pdfUri = await generatePdf(letter, profile.signature);
       if (Platform.OS === 'web') {
         const link = document.createElement('a');
         link.href = pdfUri;
@@ -69,7 +69,7 @@ export default function HistoryScreen() {
       const isAvailable = await MailComposer.isAvailableAsync();
 
       if (isAvailable) {
-        const pdfUri = await generatePdf(letter);
+        const pdfUri = await generatePdf(letter, profile.signature);
         await MailComposer.composeAsync({
           recipients: [letter.recipient.email].filter(Boolean),
           subject: letter.title,

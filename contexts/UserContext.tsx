@@ -10,6 +10,7 @@ export interface UserProfile {
   email: string;
   phone: string;
   photo?: string;
+  signature?: string;
 }
 
 interface UserContextType {
@@ -28,15 +29,20 @@ const defaultProfile: UserProfile = {
   email: '',
   phone: '',
   photo: undefined,
+  signature: undefined,
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [profile, setProfile] = useState<UserProfile>(defaultProfile);
+  const [profile, setProfileState] = useState<UserProfile>(defaultProfile);
 
   const updateProfile = (updates: Partial<UserProfile>) => {
-    setProfile(prev => ({ ...prev, ...updates }));
+    setProfileState(prev => ({ ...prev, ...updates }));
+  };
+
+  const setProfile = (newProfile: UserProfile) => {
+    setProfileState(newProfile);
   };
 
   return (
