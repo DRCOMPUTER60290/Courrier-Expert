@@ -1,5 +1,5 @@
 // app/(tabs)/index.tsx
-import React from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  TextInput,
 } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLetters } from '@/contexts/LetterContext';
@@ -33,9 +34,11 @@ import {
   CalendarClock,
   Info,
   Gavel,
+  Star,
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MyBanner from '@/components/MyBanner';
+import { loadFavoriteTypes, saveFavoriteTypes } from '@/utils/favoriteTypes';
 
 const letterTypes = [
   { id: 'motivation', title: 'Lettre de motivation', description: 'Candidature emploi', icon: Briefcase, color: '#3b82f6' },
@@ -62,6 +65,16 @@ export default function HomeScreen() {
   const router = useRouter();
   const stats = getStatistics();
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [favorites, setFavorites] = useState<string[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const stored = await loadFavoriteTypes();
+      setFavorites(stored);
+    })();
+  }, []);
+
   const handleLetterTypePress = (type: string) => {
     router.push({ pathname: '/create-letter', params: { type } });
   };
@@ -70,7 +83,7 @@ export default function HomeScreen() {
     title: string,
     value: string | number,
     IconComponent: React.ComponentType<any>,
-    gradient: string[]
+    gradient: [string, string]
   ) => (
     <View key={title} style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <LinearGradient colors={gradient} style={styles.statGradient}>
@@ -83,22 +96,53 @@ export default function HomeScreen() {
     </View>
   );
 
-  const renderLetterType = (item: typeof letterTypes[0]) => (
-    <TouchableOpacity
-      key={item.id}
-      style={[styles.letterCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-      onPress={() => handleLetterTypePress(item.id)}
-      activeOpacity={0.7}
-    >
-      <View style={[styles.letterIconContainer, { backgroundColor: item.color + '15' }]}>
-        <item.icon size={28} color={item.color} />
-      </View>
-      <View style={styles.letterContent}>
-        <Text style={[styles.letterTitle, { color: colors.text }]}>{item.title}</Text>
-        <Text style={[styles.letterDescription, { color: colors.textSecondary }]}>{item.description}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const toggleFavorite = (id: string) => {
+    setFavorites(prev => {
+      const updated = prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id];
+      saveFavoriteTypes(updated);
+      return updated;
+    });
+  };
+
+  const renderLetterType = (item: typeof letterTypes[0]) => {
+    const isFavorite = favorites.includes(item.id);
+    return (
+      <TouchableOpacity
+        key={item.id}
+        style={[styles.letterCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+        onPress={() => handleLetterTypePress(item.id)}
+        activeOpacity={0.7}
+      >
+        <View style={[styles.letterIconContainer, { backgroundColor: item.color + '15' }]}> 
+          <item.icon size={28} color={item.color} />
+        </View>
+        <View style={styles.letterContent}>
+          <Text style={[styles.letterTitle, { color: colors.text }]}>{item.title}</Text>
+          <Text style={[styles.letterDescription, { color: colors.textSecondary }]}>{item.description}</Text>
+        </View>
+        <TouchableOpacity onPress={() => toggleFavorite(item.id)} style={styles.favoriteButton}>
+          <Star
+            size={24}
+            color={isFavorite ? colors.warning : colors.textSecondary}
+            fill={isFavorite ? colors.warning : 'none'}
+          />
+        </TouchableOpacity>
+      </TouchableOpacity>
+    );
+  };
+
+  const filteredTypes = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    const types = letterTypes.filter(
+      t =>
+        t.title.toLowerCase().includes(query) ||
+        t.description.toLowerCase().includes(query)
+    );
+    return {
+      favorites: types.filter(t => favorites.includes(t.id)),
+      others: types.filter(t => !favorites.includes(t.id)),
+    };
+  }, [searchQuery, favorites]);
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -132,12 +176,38 @@ export default function HomeScreen() {
         {renderStatCard('Taux partage', `${stats.shareRate}%`, Share2, [colors.secondary, '#94a3b8'])}
       </View>
 
-      {/* Liste des types de courriers */}
+      {/* Recherche */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={[
+            styles.searchInput,
+            { color: colors.text, backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+          placeholder="Rechercher un type..."
+          placeholderTextColor={colors.textSecondary}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
+      {/* Favoris */}
+      {filteredTypes.favorites.length > 0 && (
+        <>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Favoris</Text>
+          </View>
+          <View style={styles.letterGrid}>
+            {filteredTypes.favorites.map(renderLetterType)}
+          </View>
+        </>
+      )}
+
+      {/* Autres types */}
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Types de courriers</Text>
       </View>
       <View style={styles.letterGrid}>
-        {letterTypes.map(renderLetterType)}
+        {filteredTypes.others.map(renderLetterType)}
       </View>
 
       {/* Bannière AdMob */}
@@ -171,4 +241,7 @@ const styles = StyleSheet.create({
   letterContent:{ flex: 1 },
   letterTitle: { fontSize: 16, fontFamily: 'Inter-SemiBold', marginBottom: 4 },
   letterDescription:{ fontSize: 14, fontFamily: 'Inter-Regular' },
+  searchContainer:{ paddingHorizontal: 20, marginBottom: 16 },
+  searchInput:{ borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, fontFamily: 'Inter-Regular' },
+  favoriteButton:{ padding: 4 },
 });
