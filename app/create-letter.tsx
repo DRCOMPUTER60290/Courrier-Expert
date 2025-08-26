@@ -190,6 +190,27 @@ export default function CreateLetterScreen() {
       return false;
     }
 
+    // Validation de l'email du destinataire
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!recipient.email || !emailRegex.test(recipient.email)) {
+      Alert.alert(
+        'Erreur',
+        "Veuillez entrer une adresse email valide (ex: nom@exemple.com)"
+      );
+      return false;
+    }
+
+    // Validation du téléphone du destinataire
+    const phoneDigits = recipient.phone.replace(/\s/g, '');
+    const phoneRegex = /^\+?\d{10,15}$/;
+    if (!recipient.phone || !phoneRegex.test(phoneDigits)) {
+      Alert.alert(
+        'Erreur',
+        'Veuillez entrer un numéro de téléphone valide (10 à 15 chiffres)'
+      );
+      return false;
+    }
+
     return true;
   };
 
