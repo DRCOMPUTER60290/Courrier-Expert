@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Appearance } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -64,8 +65,17 @@ const darkColors: Colors = {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('system');
+  const [theme, setThemeState] = useState<Theme>('system');
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
+
+  useEffect(() => {
+    (async () => {
+      const storedTheme = await AsyncStorage.getItem('theme');
+      if (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'system') {
+        setThemeState(storedTheme as Theme);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     const systemTheme = Appearance.getColorScheme() || 'light';
@@ -78,6 +88,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       return () => subscription?.remove();
     }
   }, [theme]);
+
+  const setTheme = (newTheme: Theme) => {
+    setThemeState(newTheme);
+    AsyncStorage.setItem('theme', newTheme);
+  };
 
   const colors = currentTheme === 'dark' ? darkColors : lightColors;
 
