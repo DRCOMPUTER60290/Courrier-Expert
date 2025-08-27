@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Modal, FlatList } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useLetters, Recipient } from '@/contexts/LetterContext';
+import { useLetters } from '@/contexts/LetterContext';
+import { useRecipients, Recipient } from '@/contexts/RecipientContext';
 import { useUser } from '@/contexts/UserContext';
-import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, FileText, Send, Loader, Wifi, WifiOff } from 'lucide-react-native';
+import { ArrowLeft, Calendar, FileText, Send, Loader, Wifi, WifiOff, SortAsc, SortDesc } from 'lucide-react-native';
 import DatePicker from '@/components/DatePicker';
-import CitySelector from '@/components/CitySelector';
 import { generateLetter } from '@/services/letterApi';
-import { loadLastRecipient, saveLastRecipient } from '@/utils/recipientStorage';
 import { saveDraft, loadDraft, clearDraft } from '@/utils/draftStorage';
 
 interface FormField {
@@ -117,10 +116,18 @@ export default function CreateLetterScreen() {
   const { colors } = useTheme();
   const { addLetter } = useLetters();
   const { profile } = useUser();
+  const { recipients } = useRecipients();
   const router = useRouter();
 
   const [formData, setFormData] = useState<Record<string, string>>({});
-  const [recipient, setRecipient] = useState<Recipient>({
+  const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
+  const [selectorVisible, setSelectorVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortAsc, setSortAsc] = useState(true);
+
+  const emptyRecipient: Recipient = {
     firstName: '',
     lastName: '',
     status: '',
@@ -129,26 +136,24 @@ export default function CreateLetterScreen() {
     city: '',
     email: '',
     phone: '',
-  });
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generationError, setGenerationError] = useState<string | null>(null);
+  };
 
   useEffect(() => {
     loadDraft().then(draft => {
       if (draft) {
         setFormData(draft.formData || {});
         if (draft.recipient) {
-          setRecipient(draft.recipient);
+          setSelectedRecipient(draft.recipient);
         }
-      } else {
-        loadLastRecipient().then(saved => {
-          if (saved) {
-            setRecipient(saved);
-          }
-        });
       }
     });
   }, []);
+
+  const filteredRecipients = recipients
+    .filter(r => `${r.firstName} ${r.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) =>
+      sortAsc ? a.lastName.localeCompare(b.lastName) : b.lastName.localeCompare(a.lastName)
+    );
 
   const fields = letterTypeFields[type || 'motivation'] || [];
   const typeLabels: Record<string, string> = {
@@ -172,19 +177,7 @@ export default function CreateLetterScreen() {
   const handleInputChange = (key: string, value: string) => {
     setFormData(prev => {
       const updated = { ...prev, [key]: value };
-      saveDraft(updated, recipient);
-      return updated;
-    });
-    // Clear error when user starts typing
-    if (generationError) {
-      setGenerationError(null);
-    }
-  };
-
-  const handleRecipientChange = (key: keyof Recipient, value: string) => {
-    setRecipient(prev => {
-      const updated = { ...prev, [key]: value };
-      saveDraft(formData, updated);
+      saveDraft(updated, selectedRecipient || emptyRecipient);
       return updated;
     });
     // Clear error when user starts typing
@@ -201,34 +194,10 @@ export default function CreateLetterScreen() {
         return false;
       }
     }
-
-    // Vérifier les champs obligatoires du destinataire
-    if (!recipient.firstName || !recipient.lastName) {
-      Alert.alert('Erreur', 'Le prénom et nom du destinataire sont obligatoires');
+    if (!selectedRecipient) {
+      Alert.alert('Erreur', 'Veuillez sélectionner un destinataire');
       return false;
     }
-
-    // Validation de l'email du destinataire
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!recipient.email || !emailRegex.test(recipient.email)) {
-      Alert.alert(
-        'Erreur',
-        "Veuillez entrer une adresse email valide (ex: nom@exemple.com)"
-      );
-      return false;
-    }
-
-    // Validation du téléphone du destinataire
-    const phoneDigits = recipient.phone.replace(/\s/g, '');
-    const phoneRegex = /^\+?\d{10,15}$/;
-    if (!recipient.phone || !phoneRegex.test(phoneDigits)) {
-      Alert.alert(
-        'Erreur',
-        'Veuillez entrer un numéro de téléphone valide (10 à 15 chiffres)'
-      );
-      return false;
-    }
-
     return true;
   };
 
@@ -243,7 +212,7 @@ export default function CreateLetterScreen() {
     try {
       const generatedContent = await generateLetter(
         type || 'motivation',
-        recipient,
+        selectedRecipient!,
         profile,
         formData.subject || '',
         formData.body || '',
@@ -254,15 +223,14 @@ export default function CreateLetterScreen() {
       const newLetter = {
         id: Date.now().toString(),
         type: type || 'motivation',
-        title: `${typeLabels[type || 'motivation']} - ${recipient.firstName} ${recipient.lastName}`,
+        title: `${typeLabels[type || 'motivation']} - ${selectedRecipient!.firstName} ${selectedRecipient!.lastName}`,
         content: generatedContent,
-        recipient,
+        recipient: selectedRecipient!,
         data: formData,
         createdAt: new Date(),
       };
 
       addLetter(newLetter);
-      saveLastRecipient(recipient);
       await clearDraft();
 
       Alert.alert(
@@ -341,26 +309,6 @@ export default function CreateLetterScreen() {
     );
   };
 
-  const renderRecipientField = (key: keyof Recipient, label: string, placeholder: string, icon: React.ComponentType<any>) => (
-    <View style={styles.fieldContainer}>
-      <View style={styles.fieldHeader}>
-        {React.createElement(icon, { size: 16, color: colors.textSecondary })}
-        <Text style={[styles.fieldLabel, { color: colors.text }]}>{label}</Text>
-      </View>
-      <TextInput
-        style={[styles.fieldInput, { color: colors.text, borderColor: colors.border }]}
-        value={recipient[key]}
-        onChangeText={(value) => handleRecipientChange(key, value)}
-        placeholder={placeholder}
-        placeholderTextColor={colors.textSecondary}
-        keyboardType={key === 'postalCode' ? 'numeric' : 'default'}
-        maxLength={key === 'postalCode' ? 5 : undefined}
-        accessible
-        accessibilityLabel={label}
-      />
-    </View>
-  );
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
@@ -399,20 +347,16 @@ export default function CreateLetterScreen() {
 
         <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Destinataire</Text>
-          {renderRecipientField('firstName', 'Prénom', 'Prénom du destinataire', User)}
-          {renderRecipientField('lastName', 'Nom', 'Nom du destinataire', User)}
-          {renderRecipientField('status', 'Statut', 'Monsieur, Madame, Docteur...', User)}
-          {renderRecipientField('address', 'Adresse', 'Adresse complète', MapPin)}
-          {renderRecipientField('postalCode', 'Code postal', '75000', MapPin)}
-          
-          <CitySelector
-            postalCode={recipient.postalCode}
-            selectedCity={recipient.city}
-            onCityChange={(city) => handleRecipientChange('city', city)}
-          />
-          
-          {renderRecipientField('email', 'Email', 'email@exemple.com', Mail)}
-          {renderRecipientField('phone', 'Téléphone', '01 23 45 67 89', Phone)}
+          <TouchableOpacity
+            style={[styles.recipientSelector, { borderColor: colors.border, backgroundColor: colors.surface }]}
+            onPress={() => setSelectorVisible(true)}
+          >
+            <Text style={{ color: selectedRecipient ? colors.text : colors.textSecondary }}>
+              {selectedRecipient
+                ? `${selectedRecipient.firstName} ${selectedRecipient.lastName}`
+                : 'Sélectionner un destinataire'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Avertissement de connexion requise */}
@@ -449,6 +393,48 @@ export default function CreateLetterScreen() {
 
         <View style={{ height: 80 }} />
       </ScrollView>
+      <Modal visible={selectorVisible} animationType="slide">
+        <View style={[styles.modalContainer, { backgroundColor: colors.background }]}> 
+          <View style={styles.modalContent}>
+            <View style={styles.searchRow}>
+              <TextInput
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder="Rechercher"
+                placeholderTextColor={colors.textSecondary}
+                style={[styles.searchInput, { backgroundColor: colors.surface, color: colors.text }]}
+              />
+              <TouchableOpacity
+                onPress={() => setSortAsc(!sortAsc)}
+                style={[styles.sortBtn, { backgroundColor: colors.surface }]}
+              >
+                {sortAsc ? <SortAsc size={20} color={colors.text} /> : <SortDesc size={20} color={colors.text} />}
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={filteredRecipients}
+              keyExtractor={item => item.id || ''}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[styles.recipientItem, { borderColor: colors.border }]}
+                  onPress={() => {
+                    setSelectedRecipient(item);
+                    saveDraft(formData, item);
+                    setSelectorVisible(false);
+                  }}
+                >
+                  <Text style={{ color: colors.text }}>{item.firstName} {item.lastName}</Text>
+                  <Text style={{ color: colors.textSecondary, fontSize: 12 }}>{item.email}</Text>
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={<Text style={{ color: colors.textSecondary, textAlign: 'center', marginTop: 20 }}>Aucun destinataire</Text>}
+            />
+            <TouchableOpacity onPress={() => setSelectorVisible(false)} style={[styles.closeModal, { backgroundColor: colors.primary }]}>
+              <Text style={{ color: '#fff', fontFamily: 'Inter-SemiBold' }}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -520,6 +506,12 @@ const styles = StyleSheet.create({
     height: 100,
     textAlignVertical: 'top',
   },
+  recipientSelector: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -547,6 +539,45 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Medium',
     flex: 1,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    flex: 1,
+  },
+  searchRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    fontFamily: 'Inter-Regular',
+  },
+  sortBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  recipientItem: {
+    padding: 12,
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  closeModal: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
   },
   generateButton: {
     flexDirection: 'row',

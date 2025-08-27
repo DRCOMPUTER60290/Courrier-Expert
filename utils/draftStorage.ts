@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Recipient } from '@/contexts/LetterContext';
+import { Recipient } from '@/contexts/RecipientContext';
 
 const STORAGE_KEY = 'letterDraft';
 

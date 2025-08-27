@@ -1,5 +1,5 @@
 import { Tabs, SplashScreen, usePathname, useRouter } from 'expo-router';
-import { Chrome as Home, History, User, Settings } from 'lucide-react-native';
+import { Chrome as Home, History, User, Settings, Users } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import React, { useEffect } from 'react';
 import mobileAds from 'react-native-google-mobile-ads';
@@ -84,6 +84,16 @@ export default function TabLayout() {
           title: 'Historique',
           tabBarIcon: ({ size, color }) => (
             <History size={size} color={color} />
+          ),
+        }}
+        listeners={{ tabPress: preventIfIncomplete }}
+      />
+      <Tabs.Screen
+        name="recipients"
+        options={{
+          title: 'Destinataires',
+          tabBarIcon: ({ size, color }) => (
+            <Users size={size} color={color} />
           ),
         }}
         listeners={{ tabPress: preventIfIncomplete }}
