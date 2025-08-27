@@ -2,7 +2,7 @@
 
 import { Alert } from 'react-native';
 import { UserProfile } from '@/contexts/UserContext';
-import { Recipient } from '@/contexts/LetterContext';
+import { Recipient } from '@/contexts/RecipientContext';
 import { BACKEND_URL } from '@/config';
 
 const API_URL = `${BACKEND_URL}/api/generate-letter`;

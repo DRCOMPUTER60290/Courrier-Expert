@@ -1,16 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { loadLetters, saveLetters } from '@/utils/letterStorage';
-
-export interface Recipient {
-  firstName: string;
-  lastName: string;
-  status: string;
-  address: string;
-  postalCode: string;
-  city: string;
-  email: string;
-  phone: string;
-}
+import { Recipient } from '@/contexts/RecipientContext';
 
 export interface Letter {
   id: string;
