@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Modal, Alert } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useRecipients, Recipient } from '@/contexts/RecipientContext';
+import MyBanner from '@/components/MyBanner';
 import { Plus, Edit, Trash2, SortAsc, SortDesc, X, Check } from 'lucide-react-native';
 
 export default function RecipientsScreen() {
@@ -113,6 +114,8 @@ export default function RecipientsScreen() {
         renderItem={renderItem}
         ListEmptyComponent={<Text style={[styles.empty, { color: colors.textSecondary }]}>Aucun destinataire</Text>}
       />
+
+      <MyBanner />
 
       <Modal visible={modalVisible} animationType="slide">
         <View style={[styles.modalContainer, { backgroundColor: colors.background }]}> 
