@@ -2,6 +2,15 @@
 
 Courrier-Expert is a React Native application built with **Expo Router** for generating and managing professional letters. It uses AI-powered letter generation through a remote server to create personalized, professional correspondence.
 
+## Tarifs
+
+Courrier-Expert propose deux formules :
+
+* **Plan gratuit** – jusqu'à 10 lettres par mois.
+* **Plan Premium** – lettres illimitées pour ~4,99 € par mois.
+
+Pour s'abonner, l'utilisateur sélectionne son plan dans l'application et confirme l'achat via la plateforme (App Store ou Google Play). Le quota gratuit est automatiquement réinitialisé chaque mois. Les abonnés Premium disposent d'un quota illimité tant que l'abonnement reste actif ; la gestion ou l'annulation de l'abonnement se fait directement via le store utilisé.
+
 ## Running locally
 
 1. Install dependencies:
