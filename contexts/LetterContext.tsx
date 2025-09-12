@@ -10,6 +10,8 @@ export interface Letter {
   recipient: Recipient;
   data: Record<string, any>;
   createdAt: Date;
+  reminderDate?: Date;
+  notificationId?: string;
 }
 
 interface LetterContextType {
