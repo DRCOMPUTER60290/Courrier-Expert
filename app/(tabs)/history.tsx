@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, TextInput, FlatList } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLetters } from '@/contexts/LetterContext';
+import { useRecipients } from '@/contexts/RecipientContext';
 import { useRouter } from 'expo-router';
 import { FileText, Share2, Download, Mail, Trash2, Calendar } from 'lucide-react-native';
 import * as Sharing from 'expo-sharing';
@@ -9,13 +10,41 @@ import * as MailComposer from 'expo-mail-composer';
 import { useUser } from '@/contexts/UserContext';
 import { generatePdf } from '@/utils/plainPdf';
 import MyBanner from '@/components/MyBanner';
-import { LinearGradient } from 'expo-linear-gradient';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 
 export default function HistoryScreen() {
   const { colors } = useTheme();
-  const { letters, deleteLetter } = useLetters();
+  const { letters, deleteLetter, searchLetters, filterLetters } = useLetters();
+  const { recipients } = useRecipients();
   const { profile } = useUser();
   const router = useRouter();
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterDate, setFilterDate] = useState<Date | undefined>();
+  const [filterRecipient, setFilterRecipient] = useState<string | undefined>();
+  const [filterStatus, setFilterStatus] = useState<string | undefined>();
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const recipientOptions = useMemo(
+    () => recipients.map(r => ({ id: r.id!, name: `${r.firstName} ${r.lastName}` })),
+    [recipients]
+  );
+
+  const statusOptions = useMemo(() => {
+    const set = new Set<string>();
+    letters.forEach(l => l.status && set.add(l.status));
+    return Array.from(set);
+  }, [letters]);
+
+  const filteredLetters = useMemo(() => {
+    let result = filterLetters({ date: filterDate, recipientId: filterRecipient, status: filterStatus });
+    if (searchQuery) {
+      const searched = searchLetters(searchQuery);
+      result = result.filter(l => searched.some(s => s.id === l.id));
+    }
+    return result;
+  }, [letters, searchQuery, filterDate, filterRecipient, filterStatus]);
 
   const handleLetterPress = (letterId: string) => {
     router.push({
@@ -108,7 +137,7 @@ export default function HistoryScreen() {
   };
 
   const renderLetter = (letter: any) => (
-    <View key={letter.id} style={[styles.letterCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <View style={[styles.letterCard, { backgroundColor: colors.card, borderColor: colors.border }]}> 
       <TouchableOpacity
         style={styles.letterContent}
         onPress={() => handleLetterPress(letter.id)}
@@ -185,11 +214,61 @@ export default function HistoryScreen() {
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>Historique</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          {letters.length} courrier{letters.length !== 1 ? 's' : ''} créé{letters.length !== 1 ? 's' : ''}
+          {filteredLetters.length} courrier{filteredLetters.length !== 1 ? 's' : ''} trouvé{filteredLetters.length !== 1 ? 's' : ''}
         </Text>
       </View>
+      <TextInput
+        style={[styles.searchInput, { backgroundColor: colors.card, color: colors.text }]}
+        placeholder="Rechercher"
+        placeholderTextColor={colors.textSecondary}
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
 
-      {letters.length === 0 ? (
+      <View style={styles.filters}>
+        <TouchableOpacity
+          style={[styles.filterButton, { borderColor: colors.border }]}
+          onPress={() => setShowDatePicker(true)}
+        >
+          <Text style={{ color: colors.text }}>
+            {filterDate ? formatDate(filterDate) : 'Date'}
+          </Text>
+        </TouchableOpacity>
+        <Picker
+          selectedValue={filterRecipient}
+          onValueChange={(value) => setFilterRecipient(value)}
+          style={[styles.picker, { color: colors.text }]}
+        >
+          <Picker.Item label="Destinataire" value={undefined} />
+          {recipientOptions.map(r => (
+            <Picker.Item key={r.id} label={r.name} value={r.id} />
+          ))}
+        </Picker>
+        <Picker
+          selectedValue={filterStatus}
+          onValueChange={(value) => setFilterStatus(value)}
+          style={[styles.picker, { color: colors.text }]}
+        >
+          <Picker.Item label="Statut" value={undefined} />
+          {statusOptions.map(status => (
+            <Picker.Item key={status} label={status} value={status} />
+          ))}
+        </Picker>
+      </View>
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={filterDate || new Date()}
+          mode="date"
+          display="default"
+          onChange={(_, date) => {
+            setShowDatePicker(false);
+            if (date) setFilterDate(date);
+          }}
+        />
+      )}
+
+      {filteredLetters.length === 0 ? (
         <View style={styles.emptyState}>
           <FileText size={64} color={colors.textSecondary} />
           <Text style={[styles.emptyTitle, { color: colors.text }]}>Aucun courrier</Text>
@@ -198,12 +277,16 @@ export default function HistoryScreen() {
           </Text>
         </View>
       ) : (
-        <ScrollView style={styles.lettersList} showsVerticalScrollIndicator={false}>
-          {letters.map(renderLetter)}
-          <View style={{ height: 80 }} />
-        </ScrollView>
+        <FlatList
+          data={filteredLetters}
+          renderItem={({ item }) => renderLetter(item)}
+          keyExtractor={item => item.id}
+          style={styles.lettersList}
+          showsVerticalScrollIndicator={false}
+          ListFooterComponent={<View style={{ height: 80 }} />}
+        />
       )}
-	   {/* Bannière AdMob */}
+           {/* Bannière AdMob */}
       <MyBanner />
     </View>
   );
@@ -301,5 +384,32 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  searchInput: {
+    height: 40,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    fontFamily: 'Inter-Regular',
+  },
+  filters: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 20,
+    marginBottom: 12,
+  },
+  filterButton: {
+    flex: 1,
+    height: 40,
+    borderWidth: 1,
+    borderRadius: 8,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+  },
+  picker: {
+    flex: 1,
+    height: 40,
   },
 });

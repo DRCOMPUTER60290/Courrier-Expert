@@ -9,6 +9,7 @@ export interface Letter {
   content: string;
   recipient: Recipient;
   data: Record<string, any>;
+  status?: string;
   createdAt: Date;
 }
 
@@ -25,6 +26,8 @@ interface LetterContextType {
     mostUsedType: string;
     shareRate: number;
   };
+  searchLetters: (query: string) => Letter[];
+  filterLetters: (filters: { date?: Date; recipientId?: string; status?: string }) => Letter[];
 }
 
 const LetterContext = createContext<LetterContextType | undefined>(undefined);
@@ -105,8 +108,39 @@ export function LetterProvider({ children }: { children: React.ReactNode }) {
     };
   };
 
+  const searchLetters = (query: string) => {
+    const lower = query.toLowerCase();
+    return letters.filter(letter =>
+      letter.title.toLowerCase().includes(lower) ||
+      `${letter.recipient.firstName} ${letter.recipient.lastName}`.toLowerCase().includes(lower)
+    );
+  };
+
+  const filterLetters = ({ date, recipientId, status }: { date?: Date; recipientId?: string; status?: string }) => {
+    return letters.filter(letter => {
+      const matchesDate = date
+        ? new Date(letter.createdAt).toDateString() === date.toDateString()
+        : true;
+      const matchesRecipient = recipientId ? letter.recipient.id === recipientId : true;
+      const matchesStatus = status ? letter.status === status : true;
+      return matchesDate && matchesRecipient && matchesStatus;
+    });
+  };
+
   return (
-    <LetterContext.Provider value={{ letters, addLetter, updateLetter, deleteLetter, getMonthlyCount, canGenerateLetter, getStatistics }}>
+    <LetterContext.Provider
+      value={{
+        letters,
+        addLetter,
+        updateLetter,
+        deleteLetter,
+        getMonthlyCount,
+        canGenerateLetter,
+        getStatistics,
+        searchLetters,
+        filterLetters,
+      }}
+    >
       {children}
     </LetterContext.Provider>
   );
