@@ -22,9 +22,11 @@ Pour s'abonner, l'utilisateur sélectionne son plan dans l'application et confir
 2. Start the development server:
 
    ```bash
-   npm run dev
-   # or
-   expo start
+   # Expo Go
+   npm run start
+
+   # Custom dev client
+   npm run start -- --dev-client
    ```
 
    The app can then be opened in Expo Go or a simulator.
