@@ -19,6 +19,7 @@ export async function loadLetters(): Promise<Letter[]> {
       return parsed.map(letter => ({
         ...letter,
         createdAt: new Date(letter.createdAt),
+        reminderDate: letter.reminderDate ? new Date(letter.reminderDate) : undefined,
       }));
     }
   } catch (err) {

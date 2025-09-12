@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Image, Modal } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@/contexts/UserContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useRouter } from 'expo-router';
 import { User, Pencil, Save, Camera, Mail, Phone, MapPin, Building } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import CitySelector from '@/components/CitySelector';
@@ -11,6 +13,8 @@ import SignatureCanvas from 'react-native-signature-canvas';
 export default function ProfileScreen() {
   const { colors } = useTheme();
   const { profile, updateProfile } = useUser();
+  const { plan } = useSubscription();
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState(profile);
   const [showSignaturePad, setShowSignaturePad] = useState(false);
@@ -138,12 +142,27 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={[styles.avatarContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-            {editedProfile.photo ? (
-              <Image source={{ uri: editedProfile.photo }} style={styles.avatarImage} />
-            ) : (
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={[styles.planContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.planText, { color: colors.text }]}>Plan actuel : {plan === 'premium' ? 'Premium' : 'Gratuit'}</Text>
+            {plan === 'free' && (
+              <TouchableOpacity
+                style={[styles.upgradeButton, { backgroundColor: colors.primary }]}
+                onPress={() => router.push('/subscribe')}
+                accessible
+                accessibilityRole="button"
+                accessibilityLabel="Passer au Premium"
+              >
+                <Text style={styles.upgradeButtonText}>Passer au Premium</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <View style={[styles.avatarContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+              {editedProfile.photo ? (
+                <Image source={{ uri: editedProfile.photo }} style={styles.avatarImage} />
+              ) : (
               <User size={32} color="#ffffff" />
             )}
           </View>
@@ -347,6 +366,29 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
+  },
+  planContainer: {
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  planText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+  },
+  upgradeButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  upgradeButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
   },
   avatarContainer: {
     alignSelf: 'center',
