@@ -10,7 +10,6 @@ import {
   Linking,
   Platform,
 } from 'react-native';
-import * as MailComposer from 'expo-mail-composer';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useRouter } from 'expo-router';
 import { 
@@ -26,7 +25,6 @@ import {
   Share2
 } from 'lucide-react-native';
 import MyBanner from '@/components/MyBanner';
-import { LinearGradient } from 'expo-linear-gradient';
 
 export default function SettingsScreen() {
   const { colors, theme, setTheme } = useTheme();
@@ -74,18 +72,17 @@ export default function SettingsScreen() {
   };
 
   const handleSupport = async () => {
+    const url =
+      'https://mail.google.com/mail/?view=cm&fs=1&to=webmaster@drcomputer60290.fr&su=Support%20Courrier-Expert';
     try {
-      const isAvailable = await MailComposer.isAvailableAsync();
-      if (!isAvailable) {
-        Alert.alert('Email', 'Client email non disponible');
-        return;
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Erreur', "Gmail n'est pas disponible");
       }
-      await MailComposer.composeAsync({
-        recipients: ['webmaster@drcomputer60290.fr'],
-        subject: 'Support Courrier-Expert',
-      });
     } catch {
-      Alert.alert('Erreur', "Impossible d'ouvrir le client mail");
+      Alert.alert('Erreur', "Impossible d'ouvrir Gmail");
     }
   };
 

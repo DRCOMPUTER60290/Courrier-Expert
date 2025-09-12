@@ -3,7 +3,9 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Modal, A
 import { useTheme } from '@/contexts/ThemeContext';
 import { useRecipients, Recipient } from '@/contexts/RecipientContext';
 import MyBanner from '@/components/MyBanner';
-import { Plus, Edit, Trash2, SortAsc, SortDesc, X, Check } from 'lucide-react-native';
+import ContactSelector from '@/components/ContactSelector';
+import { Plus, Edit, Trash2, SortAsc, SortDesc, X, Check, Contact } from 'lucide-react-native';
+import * as Contacts from 'expo-contacts';
 
 export default function RecipientsScreen() {
   const { colors } = useTheme();
@@ -13,6 +15,7 @@ export default function RecipientsScreen() {
   const [sortAsc, setSortAsc] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [editing, setEditing] = useState<Recipient | null>(null);
+  const [contactModalVisible, setContactModalVisible] = useState(false);
   const [form, setForm] = useState<Recipient>({
     firstName: '',
     lastName: '',
@@ -91,6 +94,21 @@ export default function RecipientsScreen() {
     />
   );
 
+  const handleImportContact = (c: Contacts.Contact) => {
+    const address = c.addresses?.[0] || {};
+    addRecipient({
+      firstName: c.firstName || '',
+      lastName: c.lastName || '',
+      status: '',
+      address: address.street || '',
+      postalCode: address.postalCode || '',
+      city: address.city || '',
+      email: c.emails?.[0]?.email || '',
+      phone: c.phoneNumbers?.[0]?.number || '',
+    });
+    setContactModalVisible(false);
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}> 
       <View style={styles.searchRow}>
@@ -101,8 +119,11 @@ export default function RecipientsScreen() {
           placeholderTextColor={colors.textSecondary}
           style={[styles.searchInput, { backgroundColor: colors.surface, color: colors.text }]}
         />
-        <TouchableOpacity onPress={() => setSortAsc(!sortAsc)} style={[styles.sortBtn, { backgroundColor: colors.surface }]}> 
+        <TouchableOpacity onPress={() => setSortAsc(!sortAsc)} style={[styles.sortBtn, { backgroundColor: colors.surface }]}>
           {sortAsc ? <SortAsc size={20} color={colors.text} /> : <SortDesc size={20} color={colors.text} />}
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setContactModalVisible(true)} style={[styles.importBtn, { backgroundColor: colors.surface }]}> 
+          <Contact size={20} color={colors.text} />
         </TouchableOpacity>
         <TouchableOpacity onPress={openAdd} style={[styles.addBtn, { backgroundColor: colors.primary }]}> 
           <Plus size={20} color="#fff" />
@@ -116,6 +137,12 @@ export default function RecipientsScreen() {
       />
 
       <MyBanner />
+
+      <ContactSelector
+        visible={contactModalVisible}
+        onClose={() => setContactModalVisible(false)}
+        onSelect={handleImportContact}
+      />
 
       <Modal visible={modalVisible} animationType="slide">
         <View style={[styles.modalContainer, { backgroundColor: colors.background }]}> 
@@ -163,6 +190,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
   },
   sortBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  importBtn: {
     width: 40,
     height: 40,
     borderRadius: 8,

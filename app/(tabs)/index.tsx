@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Image,
   TextInput,
+  Alert,
 } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLetters } from '@/contexts/LetterContext';
@@ -60,7 +61,7 @@ const letterTypes = [
 
 export default function HomeScreen() {
   const { colors } = useTheme();
-  const { getStatistics } = useLetters();
+  const { getStatistics, canGenerateLetter } = useLetters();
   const { profile } = useUser();
   const { plan } = useSubscription();
   const router = useRouter();
@@ -77,6 +78,13 @@ export default function HomeScreen() {
   }, []);
 
   const handleLetterTypePress = (type: string) => {
+    if (!canGenerateLetter('free')) {
+      Alert.alert(
+        'Limite atteinte',
+        'Vous avez atteint la limite de 10 courriers pour le plan gratuit. Passez au plan premium pour continuer.'
+      );
+      return;
+    }
     router.push({ pathname: '/create-letter', params: { type } });
   };
 
