@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useLetters } from '@/contexts/LetterContext';
+import { useLetters, Letter } from '@/contexts/LetterContext';
 import { useRouter } from 'expo-router';
 import { FileText, Share2, Download, Mail, Trash2, Calendar } from 'lucide-react-native';
 import * as Sharing from 'expo-sharing';
@@ -10,12 +10,17 @@ import { useUser } from '@/contexts/UserContext';
 import { generatePdf } from '@/utils/plainPdf';
 import MyBanner from '@/components/MyBanner';
 import { LinearGradient } from 'expo-linear-gradient';
+import { cancelReminder, rescheduleReminder } from '@/services/notifications';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 export default function HistoryScreen() {
   const { colors } = useTheme();
-  const { letters, deleteLetter } = useLetters();
+  const { letters, deleteLetter, updateLetter } = useLetters();
   const { profile } = useUser();
   const router = useRouter();
+
+  const [editingLetter, setEditingLetter] = useState<Letter | null>(null);
+  const [isReminderPickerVisible, setReminderPickerVisible] = useState(false);
 
   const handleLetterPress = (letterId: string) => {
     router.push({
@@ -107,6 +112,56 @@ export default function HistoryScreen() {
     }).format(new Date(date));
   };
 
+  const formatDateTime = (date: Date) => {
+    return new Intl.DateTimeFormat('fr-FR', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }).format(new Date(date));
+  };
+
+  const handleReminder = (letter: Letter) => {
+    if (!letter.reminderDate || !letter.notificationId) return;
+    Alert.alert(
+      'Rappel',
+      `Rappel prévu le ${formatDateTime(letter.reminderDate)}`,
+      [
+        {
+          text: 'Modifier',
+          onPress: () => {
+            setEditingLetter(letter);
+            setReminderPickerVisible(true);
+          },
+        },
+        {
+          text: 'Annuler',
+          style: 'destructive',
+          onPress: async () => {
+            await cancelReminder(letter.notificationId!);
+            updateLetter(letter.id, { ...letter, reminderDate: undefined, notificationId: undefined });
+          },
+        },
+        { text: 'Fermer', style: 'cancel' },
+      ]
+    );
+  };
+
+  const handleReminderConfirm = async (date: Date) => {
+    if (!editingLetter) return;
+    const newId = await rescheduleReminder(
+      editingLetter.notificationId!,
+      date,
+      editingLetter.title,
+      'Pensez à votre courrier'
+    );
+    updateLetter(editingLetter.id, {
+      ...editingLetter,
+      reminderDate: date,
+      notificationId: newId,
+    });
+    setEditingLetter(null);
+    setReminderPickerVisible(false);
+  };
+
   const renderLetter = (letter: any) => (
     <View key={letter.id} style={[styles.letterCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <TouchableOpacity
@@ -166,6 +221,18 @@ export default function HistoryScreen() {
         >
           <Mail size={18} color={colors.warning} />
         </TouchableOpacity>
+        {letter.notificationId && (
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: colors.secondary + '15' }]}
+            onPress={() => handleReminder(letter)}
+            accessible
+            accessibilityRole="button"
+            accessibilityLabel="Rappel"
+            accessibilityHint="Modifier ou annuler le rappel"
+          >
+            <Calendar size={18} color={colors.secondary} />
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: colors.error + '15' }]}
           onPress={() => handleDelete(letter)}
@@ -203,8 +270,18 @@ export default function HistoryScreen() {
           <View style={{ height: 80 }} />
         </ScrollView>
       )}
-	   {/* Bannière AdMob */}
+           {/* Bannière AdMob */}
       <MyBanner />
+      <DateTimePickerModal
+        isVisible={isReminderPickerVisible}
+        mode="datetime"
+        locale="fr_FR"
+        onConfirm={handleReminderConfirm}
+        onCancel={() => {
+          setReminderPickerVisible(false);
+          setEditingLetter(null);
+        }}
+      />
     </View>
   );
 }
