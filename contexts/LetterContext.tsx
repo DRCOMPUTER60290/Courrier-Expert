@@ -1,6 +1,8 @@
+// contexts/LetterContext.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { loadLetters, saveLetters } from '@/utils/letterStorage';
 import { Recipient } from '@/contexts/RecipientContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 export interface Letter {
   id: string;
@@ -19,8 +21,13 @@ interface LetterContextType {
   addLetter: (letter: Letter) => void;
   updateLetter: (id: string, updatedLetter: Letter) => void;
   deleteLetter: (id: string) => void;
+
+  // Compatibilité des deux branches :
+  // - getMonthlyCount : compteur du mois en cours
+  // - canGenerateLetter : accepte un plan optionnel (utilise le plan du SubscriptionContext par défaut)
   getMonthlyCount: () => number;
-  canGenerateLetter: (plan: 'free' | 'premium') => boolean;
+  canGenerateLetter: (plan?: 'free' | 'premium') => boolean;
+
   getStatistics: () => {
     totalLetters: number;
     thisMonth: number;
@@ -33,6 +40,7 @@ const LetterContext = createContext<LetterContextType | undefined>(undefined);
 
 export function LetterProvider({ children }: { children: React.ReactNode }) {
   const [letters, setLetters] = useState<Letter[]>([]);
+  const { plan } = useSubscription(); // 'free' | 'premium'
 
   useEffect(() => {
     loadLetters().then(setLetters);
@@ -48,9 +56,7 @@ export function LetterProvider({ children }: { children: React.ReactNode }) {
 
   const updateLetter = (id: string, updatedLetter: Letter) => {
     setLetters(prev => {
-      const updated = prev.map(letter =>
-        letter.id === id ? updatedLetter : letter
-      );
+      const updated = prev.map(l => (l.id === id ? updatedLetter : l));
       saveLetters(updated);
       return updated;
     });
@@ -58,7 +64,7 @@ export function LetterProvider({ children }: { children: React.ReactNode }) {
 
   const deleteLetter = (id: string) => {
     setLetters(prev => {
-      const updated = prev.filter(letter => letter.id !== id);
+      const updated = prev.filter(l => l.id !== id);
       saveLetters(updated);
       return updated;
     });
@@ -66,58 +72,65 @@ export function LetterProvider({ children }: { children: React.ReactNode }) {
 
   const getMonthlyCount = () => {
     const now = new Date();
-    return letters.filter(letter => {
-      const letterDate = new Date(letter.createdAt);
-      return (
-        letterDate.getMonth() === now.getMonth() &&
-        letterDate.getFullYear() === now.getFullYear()
-      );
+    return letters.filter(l => {
+      const d = new Date(l.createdAt);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     }).length;
   };
 
-  const canGenerateLetter = (plan: 'free' | 'premium') => {
-    if (plan === 'free' && getMonthlyCount() >= 10) {
-      return false;
-    }
-    return true;
+  // Limite : 10 lettres / mois pour 'free', illimité pour 'premium'.
+  // plan paramétrable (compat) mais optionnel : par défaut on prend le plan du contexte.
+  const canGenerateLetter = (overridePlan?: 'free' | 'premium') => {
+    const effectivePlan = overridePlan ?? plan;
+    if (effectivePlan === 'premium') return true;
+    return getMonthlyCount() < 10;
   };
 
   const getStatistics = () => {
     const now = new Date();
-    const thisMonth = letters.filter(letter => {
-      const letterDate = new Date(letter.createdAt);
-      return letterDate.getMonth() === now.getMonth() &&
-             letterDate.getFullYear() === now.getFullYear();
+    const thisMonth = letters.filter(l => {
+      const d = new Date(l.createdAt);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     }).length;
 
     const typeCount: Record<string, number> = {};
-    letters.forEach(letter => {
-      typeCount[letter.type] = (typeCount[letter.type] || 0) + 1;
+    letters.forEach(l => {
+      typeCount[l.type] = (typeCount[l.type] || 0) + 1;
     });
 
-    const mostUsedType = Object.keys(typeCount).reduce((a, b) => 
-      typeCount[a] > typeCount[b] ? a : b, 'Aucun'
+    const mostUsedType = Object.keys(typeCount).reduce((a, b) =>
+      (typeCount[a] || 0) > (typeCount[b] || 0) ? a : b,
+      'Aucun'
     );
 
     return {
       totalLetters: letters.length,
       thisMonth,
       mostUsedType: typeCount[mostUsedType] ? mostUsedType : 'Aucun',
-      shareRate: Math.round((letters.length * 0.7 + Math.random() * 30)), // Simulation
+      // Simulation d’un taux de partage
+      shareRate: Math.round(letters.length * 0.7 + Math.random() * 30),
     };
   };
 
   return (
-    <LetterContext.Provider value={{ letters, addLetter, updateLetter, deleteLetter, getMonthlyCount, canGenerateLetter, getStatistics }}>
+    <LetterContext.Provider
+      value={{
+        letters,
+        addLetter,
+        updateLetter,
+        deleteLetter,
+        getMonthlyCount,
+        canGenerateLetter,
+        getStatistics,
+      }}
+    >
       {children}
     </LetterContext.Provider>
   );
 }
 
 export function useLetters() {
-  const context = useContext(LetterContext);
-  if (!context) {
-    throw new Error('useLetters must be used within a LetterProvider');
-  }
-  return context;
+  const ctx = useContext(LetterContext);
+  if (!ctx) throw new Error('useLetters must be used within a LetterProvider');
+  return ctx;
 }

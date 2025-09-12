@@ -207,6 +207,13 @@ export default function CreateLetterScreen() {
 
   const handleGenerateLetter = async () => {
     if (!validateForm()) return;
+    if (!canGenerateLetter()) {
+      Alert.alert(
+        'Limite atteinte',
+        'Vous avez atteint la limite de 10 courriers ce mois-ci. Passez au plan Premium pour un accès illimité.'
+      );
+      return;
+    }
 
     if (!canGenerateLetter('free')) {
       Alert.alert(

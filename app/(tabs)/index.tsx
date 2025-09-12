@@ -13,6 +13,7 @@ import {
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLetters } from '@/contexts/LetterContext';
 import { useUser } from '@/contexts/UserContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useRouter } from 'expo-router';
 import {
   FileText,
@@ -62,6 +63,7 @@ export default function HomeScreen() {
   const { colors } = useTheme();
   const { getStatistics, canGenerateLetter } = useLetters();
   const { profile } = useUser();
+  const { plan } = useSubscription();
   const router = useRouter();
   const stats = getStatistics();
 
@@ -184,9 +186,25 @@ export default function HomeScreen() {
       </View>
 
       {/* Slogan */}
-      <Text style={[styles.tagline, { color: colors.textSecondary }]}>
+      <Text style={[styles.tagline, { color: colors.textSecondary }]}> 
         Votre courrier, prêt en un instant
       </Text>
+
+      {/* Plan */}
+      <View style={[styles.planBanner, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <Text style={[styles.planText, { color: colors.text }]}>Plan actuel : {plan === 'premium' ? 'Premium' : 'Gratuit'}</Text>
+        {plan === 'free' && (
+          <TouchableOpacity
+            style={[styles.planButton, { backgroundColor: colors.primary }]}
+            onPress={() => router.push('/subscribe')}
+            accessible
+            accessibilityRole="button"
+            accessibilityLabel="Passer au Premium"
+          >
+            <Text style={styles.planButtonText}>Passer au Premium</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Statistiques */}
       <View style={styles.statsContainer}>
@@ -247,6 +265,10 @@ const styles = StyleSheet.create({
   logo:        { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
   profileImage:{ width: '100%', height: '100%', borderRadius: 24 },
   tagline:     { fontSize: 16, fontFamily: 'Inter-Medium', textAlign: 'center', marginBottom: 30, fontStyle: 'italic' },
+  planBanner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderRadius: 12, borderWidth: 1, marginHorizontal: 20, marginBottom: 30 },
+  planText:   { fontSize: 16, fontFamily: 'Inter-Medium' },
+  planButton: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 },
+  planButtonText: { fontSize: 14, fontFamily: 'Inter-SemiBold', color: '#ffffff' },
   statsContainer: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 20, gap: 12, marginBottom: 30 },
   statCard:    { flex: 1, minWidth: '47%', flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 12, borderWidth: 1 },
   statGradient:{ width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
