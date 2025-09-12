@@ -7,24 +7,25 @@ import {
   TouchableOpacity,
   Alert,
   Share,
-  Linking,
-  Platform,
+  Linking
 } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useRouter } from 'expo-router';
-import { 
-  Moon, 
-  Sun, 
+import {
+  Moon,
+  Sun,
   Monitor,
-  Info, 
-  FileText, 
+  Info,
+  FileText,
   Shield,
   ChevronRight,
   Star,
   MessageCircle,
-  Share2
+  Share2,
+  HelpCircle
 } from 'lucide-react-native';
 import MyBanner from '@/components/MyBanner';
+import { contactSupport } from '@/services/support';
 
 export default function SettingsScreen() {
   const { colors, theme, setTheme } = useTheme();
@@ -68,21 +69,6 @@ export default function SettingsScreen() {
       });
     } catch {
       Alert.alert('Erreur', "Impossible de partager l'application");
-    }
-  };
-
-  const handleSupport = async () => {
-    const url =
-      'https://mail.google.com/mail/?view=cm&fs=1&to=webmaster@drcomputer60290.fr&su=Support%20Courrier-Expert';
-    try {
-      const supported = await Linking.canOpenURL(url);
-      if (supported) {
-        await Linking.openURL(url);
-      } else {
-        Alert.alert('Erreur', "Gmail n'est pas disponible");
-      }
-    } catch {
-      Alert.alert('Erreur', "Impossible d'ouvrir Gmail");
     }
   };
 
@@ -154,26 +140,33 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Application</Text>
-          
+
           {renderSetting(
             'Noter l\'application',
             'Partagez votre expérience',
             Star,
             handleRateApp
           )}
-          
+
           {renderSetting(
             'Partager l\'application',
             'Recommander à vos contacts',
             Share2,
             handleShareApp
           )}
-          
+
+          {renderSetting(
+            'Aide',
+            'FAQ et tutoriels',
+            HelpCircle,
+            () => router.push('/help' as any)
+          )}
+
           {renderSetting(
             'Support',
             'Contactez notre équipe',
             MessageCircle,
-            handleSupport
+            contactSupport
           )}
         </View>
 
