@@ -114,7 +114,7 @@ const letterTypeFields: Record<string, FormField[]> = {
 export default function CreateLetterScreen() {
   const { type } = useLocalSearchParams<{ type: string }>();
   const { colors } = useTheme();
-  const { addLetter } = useLetters();
+  const { addLetter, canGenerateLetter } = useLetters();
   const { profile } = useUser();
   const { recipients } = useRecipients();
   const router = useRouter();
@@ -203,6 +203,14 @@ export default function CreateLetterScreen() {
 
   const handleGenerateLetter = async () => {
     if (!validateForm()) return;
+
+    if (!canGenerateLetter('free')) {
+      Alert.alert(
+        'Limite atteinte',
+        'Vous avez atteint la limite de 10 courriers pour le plan gratuit. Passez au plan premium pour continuer.'
+      );
+      return;
+    }
 
     setIsGenerating(true);
     setGenerationError(null);

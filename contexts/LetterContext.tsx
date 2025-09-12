@@ -17,6 +17,8 @@ interface LetterContextType {
   addLetter: (letter: Letter) => void;
   updateLetter: (id: string, updatedLetter: Letter) => void;
   deleteLetter: (id: string) => void;
+  getMonthlyCount: () => number;
+  canGenerateLetter: (plan: 'free' | 'premium') => boolean;
   getStatistics: () => {
     totalLetters: number;
     thisMonth: number;
@@ -60,11 +62,29 @@ export function LetterProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const getMonthlyCount = () => {
+    const now = new Date();
+    return letters.filter(letter => {
+      const letterDate = new Date(letter.createdAt);
+      return (
+        letterDate.getMonth() === now.getMonth() &&
+        letterDate.getFullYear() === now.getFullYear()
+      );
+    }).length;
+  };
+
+  const canGenerateLetter = (plan: 'free' | 'premium') => {
+    if (plan === 'free' && getMonthlyCount() >= 10) {
+      return false;
+    }
+    return true;
+  };
+
   const getStatistics = () => {
     const now = new Date();
     const thisMonth = letters.filter(letter => {
       const letterDate = new Date(letter.createdAt);
-      return letterDate.getMonth() === now.getMonth() && 
+      return letterDate.getMonth() === now.getMonth() &&
              letterDate.getFullYear() === now.getFullYear();
     }).length;
 
@@ -86,7 +106,7 @@ export function LetterProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <LetterContext.Provider value={{ letters, addLetter, updateLetter, deleteLetter, getStatistics }}>
+    <LetterContext.Provider value={{ letters, addLetter, updateLetter, deleteLetter, getMonthlyCount, canGenerateLetter, getStatistics }}>
       {children}
     </LetterContext.Provider>
   );
