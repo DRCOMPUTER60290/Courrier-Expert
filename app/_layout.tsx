@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { UserProvider } from '@/contexts/UserContext';
 import { LetterProvider } from '@/contexts/LetterContext';
 import { RecipientProvider } from '@/contexts/RecipientContext';
+import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
 import { useFonts } from 'expo-font';
 import {
   Inter_400Regular,
@@ -39,19 +40,22 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <UserProvider>
-        <RecipientProvider>
-          <LetterProvider>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="create-letter" />
-              <Stack.Screen name="letter-preview" />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-            <StatusBar style="auto" />
-          </LetterProvider>
-        </RecipientProvider>
-      </UserProvider>
+      <SubscriptionProvider>
+        <UserProvider>
+          <RecipientProvider>
+            <LetterProvider>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="create-letter" />
+                <Stack.Screen name="letter-preview" />
+                <Stack.Screen name="subscribe" />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+              <StatusBar style="auto" />
+            </LetterProvider>
+          </RecipientProvider>
+        </UserProvider>
+      </SubscriptionProvider>
     </ThemeProvider>
   );
 }

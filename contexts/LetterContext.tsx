@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { loadLetters, saveLetters } from '@/utils/letterStorage';
 import { Recipient } from '@/contexts/RecipientContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 export interface Letter {
   id: string;
@@ -17,6 +18,7 @@ interface LetterContextType {
   addLetter: (letter: Letter) => void;
   updateLetter: (id: string, updatedLetter: Letter) => void;
   deleteLetter: (id: string) => void;
+  canGenerateLetter: () => boolean;
   getStatistics: () => {
     totalLetters: number;
     thisMonth: number;
@@ -29,6 +31,7 @@ const LetterContext = createContext<LetterContextType | undefined>(undefined);
 
 export function LetterProvider({ children }: { children: React.ReactNode }) {
   const [letters, setLetters] = useState<Letter[]>([]);
+  const { plan } = useSubscription();
 
   useEffect(() => {
     loadLetters().then(setLetters);
@@ -60,6 +63,19 @@ export function LetterProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const canGenerateLetter = () => {
+    if (plan === 'premium') return true;
+    const now = new Date();
+    const count = letters.filter(letter => {
+      const date = new Date(letter.createdAt);
+      return (
+        date.getMonth() === now.getMonth() &&
+        date.getFullYear() === now.getFullYear()
+      );
+    }).length;
+    return count < 10;
+  };
+
   const getStatistics = () => {
     const now = new Date();
     const thisMonth = letters.filter(letter => {
@@ -86,7 +102,7 @@ export function LetterProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <LetterContext.Provider value={{ letters, addLetter, updateLetter, deleteLetter, getStatistics }}>
+    <LetterContext.Provider value={{ letters, addLetter, updateLetter, deleteLetter, getStatistics, canGenerateLetter }}>
       {children}
     </LetterContext.Provider>
   );
