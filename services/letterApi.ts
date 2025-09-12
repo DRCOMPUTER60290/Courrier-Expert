@@ -3,6 +3,7 @@
 import { Alert } from 'react-native';
 import { UserProfile } from '@/contexts/UserContext';
 import { Recipient } from '@/contexts/RecipientContext';
+import { Letter } from '@/contexts/LetterContext';
 import { BACKEND_URL } from '@/config';
 
 const API_URL = `${BACKEND_URL}/api/generate-letter`;
@@ -168,4 +169,50 @@ export async function generateLetter(
   const raw = result.content as string;
   const content = raw.replace(/\\n/g, '\n');
   return content;
+}
+
+// Backend synchronisation helpers
+
+async function authFetch(url: string, token: string, options: RequestInit = {}) {
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      ...(options.headers || {}),
+    },
+  });
+  if (!res.ok) {
+    throw new Error(`Request failed: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchLetters(token: string): Promise<Letter[]> {
+  return authFetch(`${BACKEND_URL}/letters`, token);
+}
+
+export async function saveLetterRemote(letter: Letter, token: string) {
+  await authFetch(`${BACKEND_URL}/letters`, token, {
+    method: 'POST',
+    body: JSON.stringify(letter),
+  });
+}
+
+export async function fetchRecipients(token: string): Promise<Recipient[]> {
+  return authFetch(`${BACKEND_URL}/recipients`, token);
+}
+
+export async function saveRecipientRemote(recipient: Recipient, token: string) {
+  await authFetch(`${BACKEND_URL}/recipients`, token, {
+    method: 'POST',
+    body: JSON.stringify(recipient),
+  });
+}
+
+export async function saveProfileRemote(profile: UserProfile, token: string) {
+  await authFetch(`${BACKEND_URL}/profile`, token, {
+    method: 'PUT',
+    body: JSON.stringify(profile),
+  });
 }

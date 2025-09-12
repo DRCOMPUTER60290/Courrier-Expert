@@ -1,5 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { saveProfileRemote } from '@/services/letterApi';
+import { fetchProfile } from '@/services/authApi';
+import { useAuth } from '@/contexts/AuthContext';
+import { savePendingProfile, getPendingProfile, clearPendingProfile } from '@/utils/profileStorage';
 
 export interface UserProfile {
   firstName: string;
@@ -37,6 +41,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfileState] = useState<UserProfile>(defaultProfile);
+  const { token } = useAuth();
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -53,11 +58,46 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     loadProfile();
   }, []);
 
+  const sync = async () => {
+    if (!token) return;
+    const pending = await getPendingProfile();
+    if (pending) {
+      try {
+        await saveProfileRemote(pending, token);
+        await clearPendingProfile();
+      } catch (err) {
+        console.error('Failed to sync profile', err);
+      }
+    }
+    try {
+      const remote = await fetchProfile(token);
+      setProfileState(remote);
+      await AsyncStorage.setItem('userProfile', JSON.stringify(remote));
+    } catch (err) {
+      console.error('Failed to fetch profile', err);
+    }
+  };
+
+  useEffect(() => {
+    sync();
+  }, [token]);
+
   const persistProfile = async (value: UserProfile) => {
     try {
       await AsyncStorage.setItem('userProfile', JSON.stringify(value));
     } catch (error) {
       console.error('Failed to save user profile', error);
+    }
+    if (token) {
+      try {
+        await saveProfileRemote(value, token);
+        await clearPendingProfile();
+      } catch (err) {
+        console.error('Failed to save profile remote', err);
+        await savePendingProfile(value);
+      }
+    } else {
+      await savePendingProfile(value);
     }
   };
 

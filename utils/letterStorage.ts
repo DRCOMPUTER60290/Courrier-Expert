@@ -26,3 +26,34 @@ export async function loadLetters(): Promise<Letter[]> {
   }
   return [];
 }
+
+const PENDING_KEY = 'pendingLetters';
+
+export async function queueLetter(letter: Letter) {
+  try {
+    const existing = await AsyncStorage.getItem(PENDING_KEY);
+    const arr: Letter[] = existing ? JSON.parse(existing) : [];
+    arr.push(letter);
+    await AsyncStorage.setItem(PENDING_KEY, JSON.stringify(arr));
+  } catch (err) {
+    console.error('Failed to queue letter', err);
+  }
+}
+
+export async function getPendingLetters(): Promise<Letter[]> {
+  try {
+    const json = await AsyncStorage.getItem(PENDING_KEY);
+    return json ? (JSON.parse(json) as Letter[]) : [];
+  } catch (err) {
+    console.error('Failed to get pending letters', err);
+    return [];
+  }
+}
+
+export async function clearPendingLetters() {
+  try {
+    await AsyncStorage.removeItem(PENDING_KEY);
+  } catch (err) {
+    console.error('Failed to clear pending letters', err);
+  }
+}

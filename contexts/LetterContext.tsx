@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { loadLetters, saveLetters } from '@/utils/letterStorage';
+import { loadLetters, saveLetters, queueLetter, getPendingLetters, clearPendingLetters } from '@/utils/letterStorage';
+import { fetchLetters, saveLetterRemote } from '@/services/letterApi';
+import { useAuth } from '@/contexts/AuthContext';
 import { Recipient } from '@/contexts/RecipientContext';
 
 export interface Letter {
@@ -29,10 +31,36 @@ const LetterContext = createContext<LetterContextType | undefined>(undefined);
 
 export function LetterProvider({ children }: { children: React.ReactNode }) {
   const [letters, setLetters] = useState<Letter[]>([]);
+  const { token } = useAuth();
 
   useEffect(() => {
     loadLetters().then(setLetters);
   }, []);
+
+  const sync = async () => {
+    if (!token) return;
+    const pending = await getPendingLetters();
+    for (const l of pending) {
+      try {
+        await saveLetterRemote(l, token);
+      } catch (err) {
+        console.error('Failed to sync letter', err);
+        return;
+      }
+    }
+    if (pending.length) await clearPendingLetters();
+    try {
+      const remote = await fetchLetters(token);
+      setLetters(remote);
+      saveLetters(remote);
+    } catch (err) {
+      console.error('Failed to fetch letters', err);
+    }
+  };
+
+  useEffect(() => {
+    sync();
+  }, [token]);
 
   const addLetter = (letter: Letter) => {
     setLetters(prev => {
@@ -40,6 +68,11 @@ export function LetterProvider({ children }: { children: React.ReactNode }) {
       saveLetters(updated);
       return updated;
     });
+    if (token) {
+      saveLetterRemote(letter, token).catch(() => queueLetter(letter));
+    } else {
+      queueLetter(letter);
+    }
   };
 
   const updateLetter = (id: string, updatedLetter: Letter) => {
@@ -50,6 +83,11 @@ export function LetterProvider({ children }: { children: React.ReactNode }) {
       saveLetters(updated);
       return updated;
     });
+    if (token) {
+      saveLetterRemote(updatedLetter, token).catch(() => queueLetter(updatedLetter));
+    } else {
+      queueLetter(updatedLetter);
+    }
   };
 
   const deleteLetter = (id: string) => {
@@ -58,13 +96,14 @@ export function LetterProvider({ children }: { children: React.ReactNode }) {
       saveLetters(updated);
       return updated;
     });
+    // deletion sync not implemented, could queue
   };
 
   const getStatistics = () => {
     const now = new Date();
     const thisMonth = letters.filter(letter => {
       const letterDate = new Date(letter.createdAt);
-      return letterDate.getMonth() === now.getMonth() && 
+      return letterDate.getMonth() === now.getMonth() &&
              letterDate.getFullYear() === now.getFullYear();
     }).length;
 
@@ -73,7 +112,7 @@ export function LetterProvider({ children }: { children: React.ReactNode }) {
       typeCount[letter.type] = (typeCount[letter.type] || 0) + 1;
     });
 
-    const mostUsedType = Object.keys(typeCount).reduce((a, b) => 
+    const mostUsedType = Object.keys(typeCount).reduce((a, b) =>
       typeCount[a] > typeCount[b] ? a : b, 'Aucun'
     );
 
@@ -81,7 +120,7 @@ export function LetterProvider({ children }: { children: React.ReactNode }) {
       totalLetters: letters.length,
       thisMonth,
       mostUsedType: typeCount[mostUsedType] ? mostUsedType : 'Aucun',
-      shareRate: Math.round((letters.length * 0.7 + Math.random() * 30)), // Simulation
+      shareRate: Math.round((letters.length * 0.7 + Math.random() * 30)),
     };
   };
 

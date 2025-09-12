@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Image, Modal } from 'react-native';
+import { Redirect } from 'expo-router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@/contexts/UserContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { User, Pencil, Save, Camera, Mail, Phone, MapPin, Building } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import CitySelector from '@/components/CitySelector';
@@ -11,7 +13,12 @@ import SignatureCanvas from 'react-native-signature-canvas';
 export default function ProfileScreen() {
   const { colors } = useTheme();
   const { profile, updateProfile } = useUser();
+  const { token, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+
+  if (!token) {
+    return <Redirect href="/login" />;
+  }
   const [editedProfile, setEditedProfile] = useState(profile);
   const [showSignaturePad, setShowSignaturePad] = useState(false);
 
@@ -137,6 +144,7 @@ export default function ProfileScreen() {
           )}
         </TouchableOpacity>
       </View>
+      <TouchableOpacity style={[styles.editButton, { backgroundColor: colors.accent, alignSelf: 'flex-end', marginRight: 20, marginBottom: 10 }]} onPress={logout}><Text style={styles.editButtonText}>Déconnexion</Text></TouchableOpacity>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.avatarContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
