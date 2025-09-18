@@ -2,7 +2,6 @@ import { Tabs, SplashScreen, usePathname, useRouter } from 'expo-router';
 import { Chrome as Home, History, User, Settings, Users } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import React, { useEffect } from 'react';
-import mobileAds from 'react-native-google-mobile-ads';
 import { Alert, Platform } from 'react-native';
 import { useUser } from '@/contexts/UserContext';
 
@@ -13,14 +12,17 @@ export default function TabLayout() {
 
   useEffect(() => {
     const initAdMob = async () => {
-      try {
-        if (Platform.OS === 'android' || Platform.OS === 'ios') {
+      if (Platform.OS === 'android' || Platform.OS === 'ios') {
+        try {
+          const { default: mobileAds } = await import('react-native-google-mobile-ads');
           await mobileAds().initialize();
           console.log('✅ AdMob initialized');
+        } catch (error) {
+          console.error('❌ AdMob initialization failed', error);
+        } finally {
+          SplashScreen.hideAsync();
         }
-      } catch (error) {
-        console.error('❌ AdMob initialization failed', error);
-      } finally {
+      } else {
         SplashScreen.hideAsync();
       }
     };
