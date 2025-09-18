@@ -4,15 +4,22 @@ import { useTheme } from '@/contexts/ThemeContext';
 import React, { useEffect } from 'react';
 import { Alert, Platform } from 'react-native';
 import { useUser } from '@/contexts/UserContext';
+import Constants from 'expo-constants';
 
 export default function TabLayout() {
   const router = useRouter();
   const pathname = usePathname();
   const { profile } = useUser();
+  const isExpoGo = Constants?.appOwnership === 'expo';
 
   useEffect(() => {
     const initAdMob = async () => {
       if (Platform.OS === 'android' || Platform.OS === 'ios') {
+        if (isExpoGo) {
+          await SplashScreen.hideAsync();
+          return;
+        }
+
         try {
           const { default: mobileAds } = await import('react-native-google-mobile-ads');
           await mobileAds().initialize();
@@ -20,15 +27,15 @@ export default function TabLayout() {
         } catch (error) {
           console.error('❌ AdMob initialization failed', error);
         } finally {
-          SplashScreen.hideAsync();
+          await SplashScreen.hideAsync();
         }
       } else {
-        SplashScreen.hideAsync();
+        await SplashScreen.hideAsync();
       }
     };
 
     initAdMob();
-  }, []);
+  }, [isExpoGo]);
 
   const isProfileComplete =
     profile.firstName.trim() &&
