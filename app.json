@@ -15,7 +15,6 @@
     "privacy": "public",
     "platforms": ["ios", "android", "web"],
     "jsEngine": "hermes",
-    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true
     },
