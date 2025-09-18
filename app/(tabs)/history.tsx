@@ -23,8 +23,6 @@ import MyBanner from '@/components/MyBanner';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { cancelReminder, rescheduleReminder } from '@/services/notifications';
 
 export default function HistoryScreen() {
   const { colors } = useTheme();
@@ -39,10 +37,6 @@ export default function HistoryScreen() {
   const [filterRecipient, setFilterRecipient] = useState<string | undefined>();
   const [filterStatus, setFilterStatus] = useState<string | undefined>();
   const [showDatePicker, setShowDatePicker] = useState(false);
-
-  // Rappels
-  const [editingLetter, setEditingLetter] = useState<Letter | null>(null);
-  const [isReminderPickerVisible, setReminderPickerVisible] = useState(false);
 
   // Options destinataires pour le Picker
   const recipientOptions = useMemo(
@@ -177,49 +171,6 @@ export default function HistoryScreen() {
     new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' })
       .format(new Date(date));
 
-  const handleReminder = (letter: Letter) => {
-    if (!letter.reminderDate || !letter.notificationId) return;
-    Alert.alert(
-      'Rappel',
-      `Rappel prévu le ${formatDateTime(letter.reminderDate)}`,
-      [
-        {
-          text: 'Modifier',
-          onPress: () => {
-            setEditingLetter(letter);
-            setReminderPickerVisible(true);
-          },
-        },
-        {
-          text: 'Annuler',
-          style: 'destructive',
-          onPress: async () => {
-            await cancelReminder(letter.notificationId!);
-            updateLetter(letter.id, { ...letter, reminderDate: undefined, notificationId: undefined });
-          },
-        },
-        { text: 'Fermer', style: 'cancel' },
-      ]
-    );
-  };
-
-  const handleReminderConfirm = async (date: Date) => {
-    if (!editingLetter) return;
-    const newId = await rescheduleReminder(
-      editingLetter.notificationId!,
-      date,
-      editingLetter.title,
-      'Pensez à votre courrier'
-    );
-    updateLetter(editingLetter.id, {
-      ...editingLetter,
-      reminderDate: date,
-      notificationId: newId,
-    });
-    setEditingLetter(null);
-    setReminderPickerVisible(false);
-  };
-
   const renderLetter = (letter: Letter) => (
     <View style={[styles.letterCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <TouchableOpacity
@@ -279,18 +230,6 @@ export default function HistoryScreen() {
         >
           <Mail size={18} color={colors.warning} />
         </TouchableOpacity>
-        {letter.notificationId && (
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: colors.secondary + '15' }]}
-            onPress={() => handleReminder(letter)}
-            accessible
-            accessibilityRole="button"
-            accessibilityLabel="Rappel"
-            accessibilityHint="Modifier ou annuler le rappel"
-          >
-            <Calendar size={18} color={colors.secondary} />
-          </TouchableOpacity>
-        )}
         <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: colors.error + '15' }]}
           onPress={() => handleDelete(letter)}
@@ -392,17 +331,6 @@ export default function HistoryScreen() {
       {/* Bannière AdMob */}
       <MyBanner />
 
-      {/* Sélecteur de rappel */}
-      <DateTimePickerModal
-        isVisible={isReminderPickerVisible}
-        mode="datetime"
-        locale="fr_FR"
-        onConfirm={handleReminderConfirm}
-        onCancel={() => {
-          setReminderPickerVisible(false);
-          setEditingLetter(null);
-        }}
-      />
     </View>
   );
 }

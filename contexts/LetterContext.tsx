@@ -13,8 +13,6 @@ export interface Letter {
   data: Record<string, any>;
   status?: string;
   createdAt: Date;
-  reminderDate?: Date;
-  notificationId?: string;
 }
 
 interface LetterContextType {
