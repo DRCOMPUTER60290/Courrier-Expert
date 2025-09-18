@@ -49,6 +49,7 @@ export default function RootLayout() {
                 <Stack.Screen name="create-letter" />
                 <Stack.Screen name="letter-preview" />
                 <Stack.Screen name="subscribe" />
+                <Stack.Screen name="premium-checkout" />
                 <Stack.Screen name="+not-found" />
               </Stack>
               <StatusBar style="auto" />

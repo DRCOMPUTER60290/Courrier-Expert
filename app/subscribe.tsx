@@ -6,12 +6,11 @@ import { useRouter } from 'expo-router';
 
 export default function SubscribeScreen() {
   const { colors } = useTheme();
-  const { plan, upgrade, downgrade } = useSubscription();
+  const { plan, downgrade } = useSubscription();
   const router = useRouter();
 
   const handleUpgrade = () => {
-    upgrade();
-    router.back();
+    router.push('/premium-checkout');
   };
 
   return (
