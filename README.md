@@ -40,6 +40,11 @@ Pour s'abonner, l'utilisateur sélectionne son plan dans l'application et confir
 
    For production builds, set `BACKEND_URL` to the appropriate server URL in your deployment environment.
 
+### Limitations d’Expo Go
+
+Les modules `react-native-google-mobile-ads` et les notifications push via `expo-notifications` nécessitent une build de développement (`expo run:android` ou `expo run:ios`). Ces fonctionnalités ne sont pas prises en charge dans Expo Go.
+
+
 ### Using React Native DevTools
 
 To enable the React Native DevTools, add the following to `app.json` under the `expo` key and rebuild:
