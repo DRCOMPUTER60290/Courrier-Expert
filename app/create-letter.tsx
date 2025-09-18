@@ -5,12 +5,10 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useLetters, Letter } from '@/contexts/LetterContext';
 import { useRecipients, Recipient } from '@/contexts/RecipientContext';
 import { useUser } from '@/contexts/UserContext';
-import { ArrowLeft, Calendar, FileText, Send, Loader, Wifi, WifiOff, SortAsc, SortDesc } from 'lucide-react-native';
+import { ArrowLeft, FileText, Send, Loader, Wifi, WifiOff, SortAsc, SortDesc } from 'lucide-react-native';
 import DatePicker from '@/components/DatePicker';
 import { generateLetter } from '@/services/letterApi';
 import { saveDraft, loadDraft, clearDraft } from '@/utils/draftStorage';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { scheduleReminder } from '@/services/notifications';
 
 interface FormField {
   key: string;
@@ -128,8 +126,6 @@ export default function CreateLetterScreen() {
   const [selectorVisible, setSelectorVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortAsc, setSortAsc] = useState(true);
-  const [reminderDate, setReminderDate] = useState<Date | null>(null);
-  const [isReminderPickerVisible, setReminderPickerVisible] = useState(false);
 
   const emptyRecipient: Recipient = {
     firstName: '',
@@ -246,24 +242,9 @@ export default function CreateLetterScreen() {
         recipient: selectedRecipient!,
         data: formData,
         createdAt: new Date(),
-        reminderDate: reminderDate || undefined,
-        notificationId: undefined,
       };
 
-      if (reminderDate) {
-        try {
-          newLetter.notificationId = await scheduleReminder(
-            reminderDate,
-            newLetter.title,
-            'Pensez à votre courrier'
-          );
-        } catch (err) {
-          console.error('Failed to schedule reminder', err);
-        }
-      }
-
       addLetter(newLetter);
-      setReminderDate(null);
       await clearDraft();
 
       Alert.alert(
@@ -392,19 +373,6 @@ export default function CreateLetterScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Rappel</Text>
-          <TouchableOpacity
-            style={[styles.reminderButton, { borderColor: colors.border, backgroundColor: colors.surface }]}
-            onPress={() => setReminderPickerVisible(true)}
-          >
-            <Calendar size={20} color={colors.textSecondary} />
-            <Text style={[styles.reminderText, { color: reminderDate ? colors.text : colors.textSecondary }]}> 
-              {reminderDate ? reminderDate.toLocaleString('fr-FR') : 'Planifier un rappel'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Avertissement de connexion requise */}
         <View style={[styles.warningContainer, { backgroundColor: colors.warning + '15', borderColor: colors.warning }]}>
           <Wifi size={20} color={colors.warning} />
@@ -439,18 +407,8 @@ export default function CreateLetterScreen() {
 
         <View style={{ height: 80 }} />
       </ScrollView>
-      <DateTimePickerModal
-        isVisible={isReminderPickerVisible}
-        mode="datetime"
-        locale="fr_FR"
-        onConfirm={date => {
-          setReminderDate(date);
-          setReminderPickerVisible(false);
-        }}
-        onCancel={() => setReminderPickerVisible(false)}
-      />
       <Modal visible={selectorVisible} animationType="slide">
-        <View style={[styles.modalContainer, { backgroundColor: colors.background }]}> 
+        <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
           <View style={styles.modalContent}>
             <View style={styles.searchRow}>
               <TextInput
@@ -567,20 +525,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
-  },
-  reminderButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderRadius: 8,
-    gap: 8,
-  },
-  reminderText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    flex: 1,
   },
   errorContainer: {
     flexDirection: 'row',
