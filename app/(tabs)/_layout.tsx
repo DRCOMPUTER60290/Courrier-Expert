@@ -3,7 +3,7 @@ import { Chrome as Home, History, User, Settings, Users } from 'lucide-react-nat
 import { useTheme } from '@/contexts/ThemeContext';
 import React, { useEffect } from 'react';
 import mobileAds from 'react-native-google-mobile-ads';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import { useUser } from '@/contexts/UserContext';
 
 export default function TabLayout() {
@@ -12,14 +12,20 @@ export default function TabLayout() {
   const { profile } = useUser();
 
   useEffect(() => {
-    // 1) Initialise la SDK AdMob dès que l'app démarre
-    mobileAds()
-      .initialize()
-      .then(statuses => {
-        console.log('✅ AdMob initialized', statuses);
-        // 2) Quand AdMob est prêt, on peut masquer l'écran de splash
+    const initAdMob = async () => {
+      try {
+        if (Platform.OS === 'android' || Platform.OS === 'ios') {
+          await mobileAds().initialize();
+          console.log('✅ AdMob initialized');
+        }
+      } catch (error) {
+        console.error('❌ AdMob initialization failed', error);
+      } finally {
         SplashScreen.hideAsync();
-      });
+      }
+    };
+
+    initAdMob();
   }, []);
 
   const isProfileComplete =
